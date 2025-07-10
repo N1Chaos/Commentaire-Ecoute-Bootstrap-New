@@ -16,35 +16,90 @@
     <link rel="stylesheet" href="css/index.css">
 </head>
 <body class="container-fluid">
-   <div id="landscapeNotice" class="d-none">
-    <div class="alert alert-warning text-center m-0 rounded-0">
-        Pour une meilleure expérience, veuillez passer en mode paysage.
-    </div>
-</div>
+    <header class=" text-black text-center py-3 mb-4">
+        <h1>Commentaires d'écoute</h1>
+        <p>Écoutez, commentez et partagez vos impressions musicales</p>
+  <!-- Lecteur audio -->
+                <div class="w-100 p-2 col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h3 class="card-title">Lecteur audio</h3>
+                            <input type="file" id="audioFile" class="form-control mb-3" accept="audio/*" />
+                            <audio id="audioPlayer" class="w-100" controls>
+                                <source id="audioSource" src="" type="audio/mp3" />
+                                Votre navigateur ne supporte pas les éléments audio.
+                            </audio>
+                        </div>
+                    </div>
+                </div>
  
-    <div class="row">
+    
         <!-- Cadre gauche - Navigation -->
-        <div class="col-md-2 bg-light p-3 border-end nav-col">
-            <div class="d-flex flex-column gap-2">
-                <a href="pages/page2.html" class="btn btn-outline-primary">Effectif</a>
-                <a href="pages/page4.html" class="btn btn-outline-primary">Voix</a>
-                <a href="pages/page13.html" class="btn btn-outline-primary">Langues</a>
-                <a href="pages/page3.html" class="btn btn-outline-primary">Instruments</a>
-                <a href="pages/page5.html" class="btn btn-outline-primary">Timbre</a>
-                <a href="pages/page9.html" class="btn btn-outline-primary">Tempo</a>
-                <a href="pages/page10.html" class="btn btn-outline-primary">Rythme</a>
-                <a href="pages/page12.html" class="btn btn-outline-primary">Dynamique</a>
-                <a href="pages/page6.html" class="btn btn-outline-primary">Forme (structure)</a>
-                <a href="pages/page7.html" class="btn btn-outline-primary">Harmonie</a>
-                <a href="pages/page8.html" class="btn btn-outline-primary">Procédé d'écriture</a>
-                <a href="pages/page11.html" class="btn btn-outline-primary">Genre</a>
-                <a href="pages/page1.html" class="btn btn-outline-primary">Styles</a>
-                <a href="pages/page14.html" class="btn btn-outline-primary">Adjectifs musicaux</a>
+
+        <!-- Navigation boutons sur 2 lignes avec largeur égale -->
+<div class="row mb-4 md-2 bg-light p-3 border-end">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body p-2"> <!-- p-2 pour un padding réduit -->
+                <div class="container-fluid">
+                    <!-- Première ligne (7 boutons) -->
+                    <div class="row g-1 mb-2"> <!-- g-1 pour espacement entre boutons -->
+                        <div class="col">
+                            <a href="pages/page2.html" class="btn btn-outline-primary w-100">Effectif</a>
+                        </div>
+                        <div class="col">
+                            <a href="pages/page4.html" class="btn btn-outline-primary w-100">Voix</a>
+                        </div>
+                        <div class="col">
+                            <a href="pages/page13.html" class="btn btn-outline-primary w-100">Langues</a>
+                        </div>
+                        <div class="col">
+                            <a href="pages/page3.html" class="btn btn-outline-primary w-100">Instruments</a>
+                        </div>
+                        <div class="col">
+                            <a href="pages/page5.html" class="btn btn-outline-primary w-100">Timbre</a>
+                        </div>
+                        <div class="col">
+                            <a href="pages/page9.html" class="btn btn-outline-primary w-100">Tempo</a>
+                        </div>
+                        <div class="col">
+                            <a href="pages/page10.html" class="btn btn-outline-primary w-100">Rythme</a>
+                        </div>
+                    </div>
+                    
+                    <!-- Deuxième ligne (7 boutons) -->
+                    <div class="row g-1">
+                        <div class="col">
+                            <a href="pages/page12.html" class="btn btn-outline-primary w-100">Dynamique</a>
+                        </div>
+                        <div class="col">
+                            <a href="pages/page6.html" class="btn btn-outline-primary w-100">Forme</a>
+                        </div>
+                        <div class="col">
+                            <a href="pages/page7.html" class="btn btn-outline-primary w-100">Harmonie</a>
+                        </div>
+                        <div class="col">
+                            <a href="pages/page8.html" class="btn btn-outline-primary w-100">Procédé</a>
+                        </div>
+                        <div class="col">
+                            <a href="pages/page11.html" class="btn btn-outline-primary w-100">Genre</a>
+                        </div>
+                        <div class="col">
+                            <a href="pages/page1.html" class="btn btn-outline-primary w-100">Styles</a>
+                        </div>
+                        <div class="col">
+                            <a href="pages/page14.html" class="btn btn-outline-primary w-100">Adjectifs</a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
+    </div>
+</div>
+       
 
         <!-- Contenu principal -->
-        <div class="col-md-10 p-4">
+        <div class="w-100 p-2 col-md-6 mb-4">
             <div class="row">
                 <!-- Mots sélectionnés -->
                 <div class="col-md-4 mb-4">
@@ -78,7 +133,7 @@
 
             <div class="row">
                 <!-- Enregistrement audio -->
-                <div class="col-md-6 mb-4">
+                <div class="w-100 p-2 col-md-6 mb-4">
                     <div class="card h-100">
                         <div class="card-body">
                             <h3 class="card-title">Commentaire audio</h3>
@@ -97,18 +152,7 @@
                 </div>
 
                 <!-- Lecteur audio -->
-                <div class="col-md-6 mb-4">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <h3 class="card-title">Lecteur audio</h3>
-                            <input type="file" id="audioFile" class="form-control mb-3" accept="audio/*" />
-                            <audio id="audioPlayer" class="w-100" controls>
-                                <source id="audioSource" src="" type="audio/mp3" />
-                                Votre navigateur ne supporte pas les éléments audio.
-                            </audio>
-                        </div>
-                    </div>
-                </div>
+                
             </div>
 
             <!-- Lecteur YouTube -->
