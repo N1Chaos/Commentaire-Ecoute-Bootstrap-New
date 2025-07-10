@@ -1,0 +1,239 @@
+/* Définition des couleurs et des variables */
+:root {
+    --primary-color: #4caf50; /* Vert */
+    --secondary-color: #ff4c4c; /* Rouge */
+    --highlight-color: #2196f3; /* Bleu */
+    --background-color: #f4f4f4; /* Gris clair */
+    --button-color: #94a595; /* Gris clair pour boutons */
+    --button-hover-color: #66bb6a; /* Vert foncé pour boutons */
+    --font-color: #333; /* Gris foncé pour texte */
+    --border-radius: 15px;
+    --padding: 10px;
+    --font-size: 16px;
+    --heading-font: 'Poppins', sans-serif;
+    --body-font: 'Open Sans', sans-serif;
+}
+
+/* Mise en page générale */
+body {
+    background-color: var(--background-color);
+    font-family: var(--body-font);
+    color: var(--font-color);
+    overflow-y: auto;
+}
+
+/* Navigation gauche */
+.bg-light {
+    background-color: white !important;
+    border: 5px solid var(--secondary-color) !important;
+    border-radius: var(--border-radius);
+}
+
+/* Boutons de navigation */
+.btn-outline-primary {
+    background-color: var(--button-color);
+    color: white !important;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 15px;
+    margin: 5px 10px;
+    width: calc(100% - 20px);
+    transition: background-color 0.3s ease;
+    font-family: var(--body-font);
+    font-size: var(--font-size);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--button-hover-color) !important;
+    color: white !important;
+}
+
+/* Cartes */
+.card {
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    height: 100%;
+}
+
+/* Zone des mots sélectionnés */
+#selectedWordsDisplay {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 5px;
+    flex-grow: 1;
+    font-size: var(--font-size);
+}
+
+.word-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+    font-weight: bold;
+}
+
+.word-container.removed {
+    opacity: 0;
+}
+
+/* Supprimer un mot */
+.delete-icon {
+    cursor: pointer;
+    color: red;
+    font-size: 20px;
+}
+
+/* Zone de commentaire */
+.bg-primary.bg-opacity-10 {
+    border: 5px solid var(--highlight-color);
+}
+
+textarea {
+    width: 100%;
+    height: 80%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-family: var(--body-font);
+    font-size: var(--font-size);
+}
+
+/* Boutons */
+.btn-primary {
+    background-color: var(--primary-color);
+    border: none;
+    transition: background-color 0.3s ease, transform 0.2s ease-in-out;
+}
+
+.btn-primary:hover {
+    background-color: var(--button-hover-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.btn-outline-danger {
+    background-color: var(--secondary-color);
+    color: white !important;
+    border: none;
+    position:absolute;
+    bottom: 10px;
+}
+
+.btn-outline-danger:hover {
+    background-color: #ff3333 !important;
+}
+
+/* Section audio */
+#recordButton {
+    background-color: #ff9800;
+    color: white;
+    border: none;
+    transition: background-color 0.3s ease;
+}
+
+#recordButton:hover {
+    background-color: #ff5722;
+}
+
+#downloadButton {
+    background-color: #ac9f8d;
+    color: white;
+    border: none;
+    transition: background-color 0.3s ease;
+}
+
+#downloadButton:hover {
+    background-color: #9c7b5e;
+}
+
+/* Player audio */
+.audio-player {
+    background-color: #f1f1f1;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+/* Player YouTube */
+.youtube-player-container {
+    background-color: white;
+    padding: 10px;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.youtube-player {
+    border-radius: var(--border-radius);
+}
+
+/* Champ de recherche YouTube */
+#videoUrl {
+    flex-grow: 1;
+    font-family: var(--body-font);
+}
+
+#search-button {
+    background-color: #ac9f8d;
+    color: white;
+    border: none;
+    transition: background-color 0.3s ease;
+}
+
+#search-button:hover {
+    background-color: #ff0000;
+}
+
+
+
+#selectedWordsDisplay {
+    max-height: 300px; /* ou ce que tu veux */
+    overflow-y: auto;
+    padding-right: 0.5rem;
+    padding-bottom: 3rem; /* Espace pour que le bouton n’empiète pas */
+    margin-bottom: 1rem;
+}
+
+
+
+#selectedWordsDisplay::-webkit-scrollbar {
+    width: 6px;
+}
+
+#selectedWordsDisplay::-webkit-scrollbar-thumb {
+    background-color: rgba(0,0,0,0.2);
+    border-radius: 3px;
+}
+/* Limite la hauteur du menu à son contenu avec un peu d'espace en bas */
+.nav-col {
+    background-color: #f8f9fa; /* même couleur que bg-light */
+    border-right: 1px solid #dee2e6;
+    padding: 1rem;
+    height: fit-content;
+}
+
+
+
+.nav-col::-webkit-scrollbar {
+    width: 10px;
+}
+.nav-col::-webkit-scrollbar-thumb {
+    background-color: #ccc;
+    border-radius: 5px;
+}
+
+@media (orientation: portrait) and (max-width: 768px) {
+    #landscapeNotice {
+        display: block !important;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 9999;
+    }
+
+    body {
+        padding-top: 60px; /* espace pour ne pas masquer le haut du contenu */
+    }
+}
