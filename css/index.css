@@ -322,3 +322,16 @@ textarea {
 .delete-word:hover {
   color: #cc0000;
 }
+
+/* Dans css/index.css */
+.tooltip-inner {
+  background-color: #333;
+  color: #fff;
+  font-family: 'Poppins', sans-serif;
+/* Dans css/index.css, à la fin */
+  z-index: 9999 !important;
+  opacity: 1 !important;
+}
+.bs-tooltip-auto, .bs-tooltip-top {
+  pointer-events: none !important;
+}

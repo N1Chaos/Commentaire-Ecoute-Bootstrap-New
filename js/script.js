@@ -1892,3 +1892,38 @@ function goToHomePage() {
     window.location.href = "../index.html";
 }
 
+// Fonction principale pour ajouter les infobulles
+function addTooltipsToExistingWords() {
+  // Sélectionne tous les conteneurs de mots sous les boutons
+  const wordContainers = document.querySelectorAll('.selected-words-container');
+  
+  wordContainers.forEach(container => {
+    // Récupère le nom de la page depuis l'attribut data-page
+    const pageName = container.getAttribute('data-page');
+    
+    // Charge les mots depuis le localStorage
+    const savedWords = JSON.parse(localStorage.getItem(`selectedWords_${pageName}`)) || [];
+    
+    // Ajoute les infobulles pour chaque mot affiché
+    container.querySelectorAll('.tag').forEach(tag => {
+      const wordText = tag.textContent.replace('×', '').trim();
+      const definition = wordDefinitions[wordText] || "Définition non disponible";
+      
+      // Ajoute l'infobulle native
+      tag.setAttribute('title', definition);
+      tag.style.cursor = 'help';
+    });
+  });
+}
+
+// Appel initial après le chargement de la page
+document.addEventListener('DOMContentLoaded', () => {
+  // Petit délai pour laisser le temps aux mots de s'afficher
+  setTimeout(addTooltipsToExistingWords, 300);
+});
+
+// Ré-exécute quand le contenu change (optionnel)
+new MutationObserver(addTooltipsToExistingWords).observe(document.body, {
+  childList: true,
+  subtree: true
+});
