@@ -30,20 +30,29 @@ function loadFromLocalStorage(key) {
 }
 
 // ==================== GESTION DES MOTS ====================
-function deleteWord(page, word) {
-  const words = loadFromLocalStorage(`selectedWords_${page}`);
-  saveToLocalStorage(`selectedWords_${page}`, words.filter(w => w !== word));
-  displayWordsForPage(page);
-}
-
+// ==================== GESTION DES MOTS ====================
 function displayWordsForPage(page) {
   const container = document.querySelector(`.selected-words-container[data-page="${page}"]`);
   if (!container) return;
 
   const words = loadFromLocalStorage(`selectedWords_${page}`);
+  
   container.innerHTML = words.length > 0 
-    ? words.map(word => `<span class="tag">${word}</span>`).join(' ')
+    ? words.map(word => `
+        <span class="tag">
+          ${word}
+          <span class="delete-word" onclick="deleteWordFromPage('${page}', '${word.replace(/'/g, "\\'")}')">×</span>
+        </span>
+      `).join(' ')
     : "<span class='empty'>Aucun mot sélectionné</span>";
+}
+
+function deleteWordFromPage(page, word) {
+  if (confirm(`Supprimer "${word}" ?`)) {
+    const words = loadFromLocalStorage(`selectedWords_${page}`);
+    saveToLocalStorage(`selectedWords_${page}`, words.filter(w => w !== word));
+    displayWordsForPage(page);
+  }
 }
 
 // ==================== LECTEUR YOUTUBE ====================
