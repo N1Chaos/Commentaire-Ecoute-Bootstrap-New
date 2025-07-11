@@ -75,7 +75,8 @@ function extractVideoID(url) {
 // -------------------------
 document.addEventListener('DOMContentLoaded', function () {
     // Affiche les mots sélectionnés
-    displaySelectedWords();
+    afficherMotsParPage();
+
 
     // Recharge la vidéo YouTube
     const savedVideoID = localStorage.getItem('youtubeVideoID');
@@ -115,6 +116,44 @@ document.addEventListener('DOMContentLoaded', function () {
             console.error("Erreur d'accès au micro : ", error);
         });
     }
+function afficherMotsParPage() {
+    // Récupérer le nom de la page sans extension
+    const pageName = window.location.pathname.split('/').pop().replace('.html', '');
+    
+    // Récupérer les mots sélectionnés pour cette page dans le localStorage
+    const motsJSON = localStorage.getItem(`selectedWords_${pageName}`);
+    const mots = motsJSON ? JSON.parse(motsJSON) : [];
+    
+    // Récupérer le conteneur HTML où afficher les mots
+    const container = document.getElementById('selectedWordsDisplay');
+    
+    if (!container) {
+        console.warn("Le conteneur 'selectedWordsDisplay' est introuvable.");
+        return;
+    }
+    
+    // Vider le contenu précédent
+    container.innerHTML = '';
+    
+    if (mots.length === 0) {
+        container.textContent = 'Aucun mot sélectionné pour cette page.';
+        return;
+    }
+    
+    // Créer une liste (ul) pour afficher les mots
+    const ul = document.createElement('ul');
+    ul.classList.add('list-group'); // classe bootstrap
+    
+    mots.forEach(mot => {
+        const li = document.createElement('li');
+        li.textContent = mot;
+        li.classList.add('list-group-item', 'py-1', 'px-2');
+        ul.appendChild(li);
+    });
+    
+    container.appendChild(ul);
+}
+
 
     // Téléchargement du commentaire audio
     document.getElementById('downloadButton').onclick = function () {
@@ -188,3 +227,36 @@ function generateTextFile() {
     link.download = 'commentaire.txt';
     link.click();
 }
+
+  
+
+document.addEventListener("DOMContentLoaded", () => {
+  const pages = {
+    page1: "Styles",
+    page2: "Effectif",
+    page3: "Instruments",
+    page4: "Voix",
+    page5: "Timbre",
+    page6: "Forme",
+    page7: "Harmonie",
+    page8: "Procédé",
+    page9: "Tempo",
+    page10: "Rythme",
+    page11: "Genre",
+    page12: "Dynamique",
+    page13: "Langues",
+    page14: "Adjectifs"
+  };
+
+  for (const [page, label] of Object.entries(pages)) {
+    const container = document.querySelector(`.selected-words-container[data-page="${page}"]`);
+    if (container) {
+      const selectedWords = JSON.parse(localStorage.getItem(`selectedWords_${page}`)) || [];
+      if (selectedWords.length > 0) {
+        container.innerHTML = selectedWords.map(word => `<span class="tag">${word}</span>`).join(' ');
+      } else {
+        container.innerHTML = "<span class='empty'>Aucun mot sélectionné</span>";
+      }
+    }
+  }
+});

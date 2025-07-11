@@ -1874,6 +1874,11 @@ function returnWords() {
         if (!selectedWords.includes(word)) selectedWords.push(word);
     });
     localStorage.setItem('selectedWords', JSON.stringify(selectedWords));
+    // Sauvegarde spécifique à la page
+const pageName = window.location.pathname.split('/').pop().replace('.html', '');
+localStorage.setItem(`selectedWords_${pageName}`, JSON.stringify(selectedWordsOnPage));
+
+
     window.location.href = "../index.html";
 }
 
@@ -1886,3 +1891,4 @@ function closeDefinition() {
 function goToHomePage() {
     window.location.href = "../index.html";
 }
+

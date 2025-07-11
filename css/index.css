@@ -255,3 +255,50 @@ textarea {
     display: inline-block;
     margin: 2px;
 }
+
+.selected-words-container {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.selected-words-container .mot-apercu {
+  background-color: #dfefff;
+  padding: 3px 8px;
+  border-radius: 5px;
+  border: 1px solid #aac;
+  font-size: 0.85em;
+}
+
+.selected-words-section {
+    margin-top: 5px;
+    font-size: 0.9em;
+    color: #444;
+}
+
+.selected-words-section .tag {
+    background-color: #e0e0e0;
+    padding: 4px 8px;
+    margin: 2px;
+    border-radius: 8px;
+    display: inline-block;
+}
+
+.selected-words-section .empty {
+    font-style: italic;
+    color: #888;
+}
+.tag {
+  display: inline-block;
+  background-color: #dbeafe;
+  color: #1d4ed8;
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-size: 0.9em;
+  margin: 2px;
+}
+.empty {
+  font-style: italic;
+  color: #999;
+}

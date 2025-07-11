@@ -1,200 +1,176 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Commentaires d'écoute</title>
-    
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-    
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
-    
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="css/index.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Commentaires d'écoute</title>
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet"/>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Open+Sans:wght@400;700&display=swap" rel="stylesheet"/>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/index.css"/>
 </head>
+
 <body class="container-fluid">
-    <header class=" text-black text-center py-3 mb-4">
-        <h1>Commentaires d'écoute</h1>
-        <p>Écoutez, commentez et partagez vos impressions musicales</p>
+  <header class="text-black text-center py-3 mb-4">
+    <h1>Commentaires d'écoute</h1>
+    <p>Écoutez, commentez et partagez vos impressions musicales</p>
+  </header>
+
   <!-- Lecteur audio -->
-                <div class="w-100 p-2 col-md-6 mb-4">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <h3 class="card-title">Lecteur audio</h3>
-                            <input type="file" id="audioFile" class="form-control mb-3" accept="audio/*" />
-                            <audio id="audioPlayer" class="w-100" controls>
-                                <source id="audioSource" src="" type="audio/mp3" />
-                                Votre navigateur ne supporte pas les éléments audio.
-                            </audio>
-                        </div>
-                    </div>
-                </div>
- 
-    
-        <!-- Cadre gauche - Navigation -->
+  <div class="w-100 p-2 col-md-6 mb-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <h3 class="card-title">Lecteur audio</h3>
+        <input type="file" id="audioFile" class="form-control mb-3" accept="audio/*" />
+        <audio id="audioPlayer" class="w-100" controls>
+          <source id="audioSource" src="" type="audio/mp3" />
+          Votre navigateur ne supporte pas les éléments audio.
+        </audio>
+      </div>
+    </div>
+  </div>
 
-        <!-- Navigation boutons sur 2 lignes avec largeur égale -->
-<div class="row mb-4 md-2 bg-light p-3 border-end">
+  <!-- Boutons de navigation -->
+  <div class="row mb-4 md-2 bg-light p-3 border-end">
     <div class="col-12">
-        <div class="card">
-            <div class="card-body p-2"> <!-- p-2 pour un padding réduit -->
-                <div class="container-fluid">
-                    <!-- Première ligne (7 boutons) -->
-                    <div class="row g-1 mb-2"> <!-- g-1 pour espacement entre boutons -->
-                        <div class="col">
-                            <a href="pages/page2.html" class="btn btn-outline-primary w-100">Effectif</a>
-                            <div class="selected-words-container" data-page="page2"></div>
-                        </div>
-                        <div class="col">
-                            <a href="pages/page4.html" class="btn btn-outline-primary w-100">Voix</a>
-                            <div class="selected-words-container" data-page="page4"></div>
-                        </div>
-                        <div class="col">
-                            <a href="pages/page13.html" class="btn btn-outline-primary w-100">Langues</a>
-                            <div class="selected-words-container" data-page="page13"></div>
-                        </div>
-                        <div class="col">
-                            <a href="pages/page3.html" class="btn btn-outline-primary w-100">Instruments</a>
-                            <div class="selected-words-container" data-page="page3"></div>
-                        </div>
-                        <div class="col">
-                            <a href="pages/page5.html" class="btn btn-outline-primary w-100">Timbre</a>
-                            <div class="selected-words-container" data-page="page5"></div>
-                        </div>
-                        <div class="col">
-                            <a href="pages/page9.html" class="btn btn-outline-primary w-100">Tempo</a>
-                            <div class="selected-words-container" data-page="page9"></div>
-                        </div>
-                        <div class="col">
-                            <a href="pages/page10.html" class="btn btn-outline-primary w-100">Rythme</a>
-                            <div class="selected-words-container" data-page="page10"></div>
-                        </div>
-                    </div>
-                    
-                    <!-- Deuxième ligne (7 boutons) -->
-                    <div class="row g-1">
-                        <div class="col">
-                            <a href="pages/page12.html" class="btn btn-outline-primary w-100">Dynamique</a>
-                            <div class="selected-words-container" data-page="page12"></div>
-                        </div>
-                        <div class="col">
-                            <a href="pages/page6.html" class="btn btn-outline-primary w-100">Forme</a>
-                            <div class="selected-words-container" data-page="page6"></div>
-                        </div>
-                        <div class="col">
-                            <a href="pages/page7.html" class="btn btn-outline-primary w-100">Harmonie</a>
-                            <div class="selected-words-container" data-page="page7"></div>
-                        </div>
-                        <div class="col">
-                            <a href="pages/page8.html" class="btn btn-outline-primary w-100">Procédé</a>
-                            <div class="selected-words-container" data-page="page8"></div>
-                        </div>
-                        <div class="col">
-                            <a href="pages/page11.html" class="btn btn-outline-primary w-100">Genre</a>
-                            <div class="selected-words-container" data-page="page11"></div>
-                        </div>
-                        <div class="col">
-                            <a href="pages/page1.html" class="btn btn-outline-primary w-100">Styles</a>
-                            <div class="selected-words-container" data-page="page1"></div>
-                        </div>
-                        <div class="col">
-                            <a href="pages/page14.html" class="btn btn-outline-primary w-100">Adjectifs</a>
-                            <div class="selected-words-container" data-page="page14"></div>
-                        </div>
-                    </div>
-                </div>
+      <div class="card">
+        <div class="card-body p-2">
+          <div class="container-fluid">
+            <!-- Première ligne -->
+            <div class="row g-1 mb-2">
+              <div class="col">
+                <a href="pages/page2.html" class="btn btn-outline-primary w-100">Effectif</a>
+                <div class="selected-words-container" data-page="page2"></div>
+              </div>
+              <div class="col">
+                <a href="pages/page4.html" class="btn btn-outline-primary w-100">Voix</a>
+                <div class="selected-words-container" data-page="page4"></div>
+              </div>
+              <div class="col">
+                <a href="pages/page13.html" class="btn btn-outline-primary w-100">Langues</a>
+                <div class="selected-words-container" data-page="page13"></div>
+              </div>
+              <div class="col">
+                <a href="pages/page3.html" class="btn btn-outline-primary w-100">Instruments</a>
+                <div class="selected-words-container" data-page="page3"></div>
+              </div>
+              <div class="col">
+                <a href="pages/page5.html" class="btn btn-outline-primary w-100">Timbre</a>
+                <div class="selected-words-container" data-page="page5"></div>
+              </div>
+              <div class="col">
+                <a href="pages/page9.html" class="btn btn-outline-primary w-100">Tempo</a>
+                <div class="selected-words-container" data-page="page9"></div>
+              </div>
+              <div class="col">
+                <a href="pages/page10.html" class="btn btn-outline-primary w-100">Rythme</a>
+                <div class="selected-words-container" data-page="page10"></div>
+              </div>
             </div>
+
+            <!-- Deuxième ligne -->
+            <div class="row g-1">
+              <div class="col">
+                <a href="pages/page12.html" class="btn btn-outline-primary w-100">Dynamique</a>
+                <div class="selected-words-container" data-page="page12"></div>
+              </div>
+              <div class="col">
+                <a href="pages/page6.html" class="btn btn-outline-primary w-100">Forme</a>
+                <div class="selected-words-container" data-page="page6"></div>
+              </div>
+              <div class="col">
+                <a href="pages/page7.html" class="btn btn-outline-primary w-100">Harmonie</a>
+                <div class="selected-words-container" data-page="page7"></div>
+              </div>
+              <div class="col">
+                <a href="pages/page8.html" class="btn btn-outline-primary w-100">Procédé</a>
+                <div class="selected-words-container" data-page="page8"></div>
+              </div>
+              <div class="col">
+                <a href="pages/page11.html" class="btn btn-outline-primary w-100">Genre</a>
+                <div class="selected-words-container" data-page="page11"></div>
+              </div>
+              <div class="col">
+                <a href="pages/page1.html" class="btn btn-outline-primary w-100">Styles</a>
+                <div class="selected-words-container" data-page="page1"></div>
+              </div>
+              <div class="col">
+                <a href="pages/page14.html" class="btn btn-outline-primary w-100">Adjectifs</a>
+                <div class="selected-words-container" data-page="page14"></div>
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
     </div>
-</div>
-       
+  </div>
 
-        <!-- Contenu principal -->
-        <div class="w-100 p-2 col-md-6 mb-4">
-            <div class="row">
-                <!-- Mots sélectionnés -->
-                <div class="col-md-4 mb-4">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <h2 class="card-title">Mots sélectionnés :</h2>
-                            <div id="selectedWordsDisplay" class="mb-3"></div>
-                            <button class="btn btn-outline-danger" onclick="clearSelectedWords()">
-                                <i class="bi bi-trash"></i> Effacer la sélection
-                            </button>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Zone de commentaire -->
-                <div class="col-md-8 mb-4">
-                    <div class="card bg-primary bg-opacity-10 h-100">
-                        <div class="card-body">
-                           <textarea id="commentText" 
-          class="form-control" 
-          style="min-height: 120px; resize: vertical"
-          rows="5"
-          placeholder="Écrivez votre commentaire"></textarea>
-                            <button class="btn btn-primary mt-3" id="generateTextButton" onclick="generateTextFile()">
-                                <i class="bi bi-file-earmark-text"></i> Générer un fichier texte
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
-            <div class="row">
-                <!-- Enregistrement audio -->
-                <div class="w-100 p-2 col-md-6 mb-4">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <h3 class="card-title">Commentaire audio</h3>
-                            <div class="d-flex flex-column gap-3">
-                                <button id="recordButton" class="btn btn-danger">
-                                    <i class="bi bi-mic-fill"></i> Enregistrer votre commentaire
-                                </button>
-                                <audio id="audioPlayback" class="w-100" controls></audio>
-                                <input type="text" id="fileName" class="form-control" placeholder="Nommer le fichier audio" />
-                                <button id="downloadButton" class="btn btn-success">
-                                    <i class="bi bi-download"></i> Télécharger votre commentaire
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Lecteur audio -->
-                
-            </div>
-
-            <!-- Lecteur YouTube -->
-            <div class="row">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-body">
-                            <h3 class="card-title">Lecteur YouTube</h3>
-                            <div class="input-group mb-3">
-                                <input type="text" id="videoUrl" class="form-control" placeholder="Entrez l'URL de la vidéo YouTube" />
-                                <button id="search-button" class="btn btn-primary" onclick="loadVideo()">
-                                    <i class="bi bi-play-fill"></i> Charger
-                                </button>
-                            </div>
-                            <div class="ratio ratio-16x9">
-                                <iframe id="youtubePlayer" src="" allowfullscreen></iframe>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <!-- Zone de commentaire -->
+    <div class="col-md-8 mb-4 w-100">
+      <div class="card bg-primary bg-opacity-10 h-100">
+        <div class="card-body">
+          <textarea id="commentText" class="form-control" style="min-height: 120px; resize: vertical" rows="5" placeholder="Écrivez votre commentaire"></textarea>
+          <button class="btn btn-primary mt-3" id="generateTextButton" onclick="generateTextFile()">
+            <i class="bi bi-file-earmark-text"></i> Générer un fichier texte
+          </button>
         </div>
+      </div>
     </div>
+  </div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Custom JS -->
-    <script src="js/index.js"></script>
+  <!-- Enregistrement audio -->
+  <div class="w-100 p-2 col-md-6 mb-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <h3 class="card-title">Commentaire audio</h3>
+        <div class="d-flex flex-column gap-3">
+          <button id="recordButton" class="btn btn-danger">
+            <i class="bi bi-mic-fill"></i> Enregistrer votre commentaire
+          </button>
+          <audio id="audioPlayback" class="w-100" controls></audio>
+          <input type="text" id="fileName" class="form-control" placeholder="Nommer le fichier audio" />
+          <button id="downloadButton" class="btn btn-success">
+            <i class="bi bi-download"></i> Télécharger votre commentaire
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lecteur YouTube -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          <h3 class="card-title">Lecteur YouTube</h3>
+          <div class="input-group mb-3">
+            <input type="text" id="videoUrl" class="form-control" placeholder="Entrez l'URL de la vidéo YouTube" />
+            <button id="search-button" class="btn btn-primary" onclick="loadVideo()">
+              <i class="bi bi-play-fill"></i> Charger
+            </button>
+          </div>
+          <div class="ratio ratio-16x9">
+            <iframe id="youtubePlayer" src="" allowfullscreen></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Custom JS -->
+
+
+  <script src="js/index.js"></script>
+  
 </body>
-
 </html>
