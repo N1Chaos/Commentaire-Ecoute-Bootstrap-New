@@ -113,6 +113,60 @@
   </div>
 
 
+<!-- NOUVEAUX BOUTONS CARTE/FRISE -->
+
+
+<div class="row mb-4">
+  <div class="col-12 text-center p-2 d-flex justify-content-center gap-3">
+    <!-- Bouton Carte du monde avec modale -->
+    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#carteMondeModal">
+      <i class="bi bi-globe"></i> Carte du monde
+    </button>
+    
+    <!-- Bouton Frise chronologique avec modale -->
+    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#friseChronoModal">
+      <i class="bi bi-calendar-range"></i> Frise chronologique
+    </button>
+  </div>
+</div>
+
+<!-- Modale pour la carte du monde -->
+<div class="modal fade" id="carteMondeModal" tabindex="-1" aria-labelledby="carteMondeModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="carteMondeModalLabel">Carte du monde</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        <img src="images/carte_du_monde.jpg" class="img-fluid" alt="Carte du monde">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modale pour la frise chronologique -->
+<div class="modal fade" id="friseChronoModal" tabindex="-1" aria-labelledby="friseChronoModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="friseChronoModalLabel">Frise chronologique</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        <img src="images/frise.jpg" class="img-fluid" alt="Frise chronologique">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 
     <!-- Zone de commentaire -->
     <div class="col-md-8 mb-4 w-100">
