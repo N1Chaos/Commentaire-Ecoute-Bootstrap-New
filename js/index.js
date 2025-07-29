@@ -1059,7 +1059,7 @@ const wordDefinitions =
     // Percussions à hauteur indéterminée
 
     "afuche cabasa": {
-      défintion: "Percussion latine/africaine à perles métalliques frottées, produisant un grésillement rythmé. Son métallique continu, idéal pour les grooves. Populaire en salsa, bossa et musiques actuelles.",
+      definition: "Percussion latine/africaine à perles métalliques frottées, produisant un grésillement rythmé. Son métallique continu, idéal pour les grooves. Populaire en salsa, bossa et musiques actuelles.",
     },
 
     "batterie": {
