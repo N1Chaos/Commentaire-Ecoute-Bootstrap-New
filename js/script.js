@@ -1028,7 +1028,8 @@ const wordDefinitions =
     // Percussions à hauteur indéterminée
     "afuche cabasa": {
         definition: "Percussion latine/africaine à perles métalliques frottées, produisant un grésillement rythmé. Son métallique continu, idéal pour les grooves. Populaire en salsa, bossa et musiques actuelles.",
-    },
+        video: "videos/afuche cabasa.mp4"
+      },
     "batterie": {
         definition: "Ensemble de percussions (toms, cymbales, grosse caisse) joué avec des baguettes.",
         image: "images/batterie.jpg",
@@ -1223,8 +1224,6 @@ const wordDefinitions =
     },
     "basse": {
         definition: "Registre le plus grave des voix masculines.",
-        image: "images/basse.jpg", // Chemin de l'image
-        audio: "audio/basse.mp3"  // Chemin du fichier audio
     },
     "basse profonde": {
         definition: "Basse avec une tessiture très grave, capable de produire des sons très bas.",
@@ -1788,21 +1787,20 @@ const definitionText = document.getElementById('definition-text');
 const definitionImage = document.getElementById('definition-image');
 const definitionAudio = document.getElementById('definition-audio');
 const definitionAudioSource = document.getElementById('definition-audio-source');
+const definitionVideo = document.getElementById('definition-video');
+const definitionVideoSource = document.getElementById('definition-video-source');
+const definitionImageContainer = document.getElementById('definition-image-container');
+const definitionAudioContainer = document.getElementById('definition-audio-container');
+const definitionVideoContainer = document.getElementById('definition-video-container');
 
-// Redimensionnement du conteneur
+// Redimensionnement
 let isResizing = false;
 let startX, startY, startWidth, startHeight;
 
 definitionContainer.addEventListener('mousedown', (e) => {
     const rect = definitionContainer.getBoundingClientRect();
-    const handleSize = 20; // Taille de la zone de redimensionnement
-
-    if (
-        e.clientX >= rect.left &&
-        e.clientX <= rect.left + handleSize &&
-        e.clientY >= rect.bottom - handleSize &&
-        e.clientY <= rect.bottom
-    ) {
+    const handleSize = 20;
+    if (e.clientX <= rect.left + handleSize && e.clientY >= rect.bottom - handleSize) {
         isResizing = true;
         startX = e.clientX;
         startY = e.clientY;
@@ -1814,8 +1812,8 @@ definitionContainer.addEventListener('mousedown', (e) => {
 
 document.addEventListener('mousemove', (e) => {
     if (isResizing) {
-        const newWidth = startWidth - (e.clientX - startX); // Réduire la largeur vers la gauche
-        const newHeight = startHeight + (e.clientY - startY); // Augmenter la hauteur vers le bas
+        const newWidth = startWidth - (e.clientX - startX);
+        const newHeight = startHeight + (e.clientY - startY);
         definitionContainer.style.width = `${Math.max(250, Math.min(newWidth, 600))}px`;
         definitionContainer.style.height = `${Math.max(200, Math.min(newHeight, 800))}px`;
     }
@@ -1825,43 +1823,51 @@ document.addEventListener('mouseup', () => {
     isResizing = false;
 });
 
-// Gestion de la sélection des mots
+// Gestion des mots
 words.forEach(word => {
     word.addEventListener('click', () => {
-        word.classList.toggle('selected'); // Toggling de la classe 'selected'
-
+        word.classList.toggle('selected');
         if (word.classList.contains('selected')) {
-            const wordData = wordDefinitions[word.textContent];
-            if (wordData) {
-                // Afficher la définition
-                definitionTitle.textContent = word.textContent;
-                definitionText.innerHTML = wordData.definition.replace(/\n/g, '<br>');
+            const wordData = wordDefinitions[word.textContent] || { definition: "Aucune définition disponible." };
+            definitionTitle.textContent = word.textContent;
+            definitionText.innerHTML = wordData.definition.replace(/\n/g, '<br>');
 
-                // Gérer l'image
-                if (wordData.image) {
-                    definitionImage.src = wordData.image;
-                    definitionImage.style.display = 'block';
-                } else {
-                    definitionImage.style.display = 'none';
-                }
-
-                // Gérer l'audio
-                if (wordData.audio) {
-                    definitionAudioSource.src = wordData.audio;
-                    definitionAudio.style.display = 'block';
-                    definitionAudio.load();
-                } else {
-                    definitionAudio.style.display = 'none';
-                }
+            // Gérer l'image
+            definitionImageContainer.style.display = wordData.image ? 'block' : 'none';
+            if (wordData.image) {
+                definitionImage.src = wordData.image;
+                definitionImage.style.display = 'block';
+            } else {
+                definitionImage.style.display = 'none';
             }
-            definitionContainer.style.display = 'block'; // Afficher le cadre de définition
+
+            // Gérer l'audio
+            definitionAudioContainer.style.display = wordData.audio ? 'block' : 'none';
+            if (wordData.audio) {
+                definitionAudioSource.src = wordData.audio;
+                definitionAudio.style.display = 'block';
+                definitionAudio.load();
+            } else {
+                definitionAudio.style.display = 'none';
+            }
+
+            // Gérer la vidéo
+            definitionVideoContainer.style.display = wordData.video ? 'block' : 'none';
+            if (wordData.video) {
+                definitionVideoSource.src = wordData.video;
+                definitionVideo.style.display = 'block';
+                definitionVideo.load();
+            } else {
+                definitionVideo.style.display = 'none';
+            }
+
+            definitionContainer.style.display = 'block';
         } else {
-            definitionContainer.style.display = 'none'; // Masquer le cadre
+            definitionContainer.style.display = 'none';
         }
     });
 });
 
-// Fonction pour annuler la sélection
 function clearSelection() {
     if (confirm('Êtes-vous sûr de vouloir annuler toutes vos sélections ?')) {
         words.forEach(word => word.classList.remove('selected'));
@@ -1869,29 +1875,26 @@ function clearSelection() {
     }
 }
 
-// Fonction pour retourner les mots sélectionnés
 function returnWords() {
     const selectedWordsOnPage = Array.from(document.querySelectorAll('.selected')).map(el => el.textContent);
+    if (selectedWordsOnPage.length === 0) {
+        alert("Aucun mot sélectionné !");
+        return;
+    }
     let selectedWords = JSON.parse(localStorage.getItem('selectedWords')) || [];
     selectedWordsOnPage.forEach(word => {
         if (!selectedWords.includes(word)) selectedWords.push(word);
     });
     localStorage.setItem('selectedWords', JSON.stringify(selectedWords));
-    // Sauvegarde spécifique à la page
-const pageName = window.location.pathname.split('/').pop().replace('.html', '');
-localStorage.setItem(`selectedWords_${pageName}`, JSON.stringify(selectedWordsOnPage));
-
-
+    const pageName = window.location.pathname.split('/').pop().replace('.html', '');
+    localStorage.setItem(`selectedWords_${pageName}`, JSON.stringify(selectedWordsOnPage));
     window.location.href = "../index.html";
 }
 
-// Fonction pour fermer le cadre de définition
 function closeDefinition() {
     definitionContainer.style.display = 'none';
 }
 
-// Fonction pour retourner à la page d'accueil
 function goToHomePage() {
     window.location.href = "../index.html";
 }
-

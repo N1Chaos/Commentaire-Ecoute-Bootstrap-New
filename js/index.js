@@ -1060,6 +1060,7 @@ const wordDefinitions =
 
     "afuche cabasa": {
       definition: "Percussion latine/africaine à perles métalliques frottées, produisant un grésillement rythmé. Son métallique continu, idéal pour les grooves. Populaire en salsa, bossa et musiques actuelles.",
+      video: "videos/afuche cabasa.mp4"
     },
 
     "batterie": {
@@ -1256,8 +1257,6 @@ const wordDefinitions =
     },
     "basse": {
         definition: "Registre le plus grave des voix masculines.",
-        image: "images/basse.jpg", // Chemin de l'image
-        audio: "audio/basse.mp3"  // Chemin du fichier audio
     },
     "basse profonde": {
         definition: "Basse avec une tessiture très grave, capable de produire des sons très bas.",
