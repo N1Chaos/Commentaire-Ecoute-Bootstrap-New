@@ -1830,6 +1830,15 @@ function displayWordsForPage(page) {
 
 function deleteWordFromPage(page, word) {
   if (confirm(`Supprimer "${word}" ?`)) {
+    // Fermer tous les tooltips avant la suppression
+    const tooltipInstances = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    tooltipInstances.forEach(el => {
+      const tooltip = bootstrap.Tooltip.getInstance(el);
+      if (tooltip) {
+        tooltip.hide(); // Force la fermeture du tooltip
+      }
+    });
+
     const words = loadFromLocalStorage(`selectedWords_${page}`);
     saveToLocalStorage(`selectedWords_${page}`, words.filter(w => w !== word));
     displayWordsForPage(page);
