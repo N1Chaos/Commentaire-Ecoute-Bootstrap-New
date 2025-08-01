@@ -1900,18 +1900,29 @@ function setupAudioPlayer() {
   const source = document.getElementById('audioSource');
   const fileInput = document.getElementById('audioFile');
 
+  if (!player || !source || !fileInput) {
+    console.error('Éléments audio non trouvés dans le DOM');
+    return;
+  }
+
   // Recharger l'audio sauvegardé si disponible
   const savedAudio = localStorage.getItem('userAudioBase64');
   if (savedAudio) {
+    console.log('Tentative de chargement de l\'audio depuis localStorage');
     source.src = savedAudio;
     player.load();
     // Restaurer le minutage
     const savedTime = parseFloat(localStorage.getItem('userAudioTime') || 0);
-    player.currentTime = savedTime;
-    // Écouter l'événement loadedmetadata pour s'assurer que le minutage est appliqué
-    player.addEventListener('loadedmetadata', () => {
+    console.log('Minutage restauré:', savedTime);
+    player.addEventListener('loadeddata', () => {
       player.currentTime = savedTime;
+      console.log('Audio chargé, minutage appliqué:', player.currentTime);
     }, { once: true });
+    player.addEventListener('error', (e) => {
+      console.error('Erreur lors du chargement de l\'audio:', e);
+    }, { once: true });
+  } else {
+    console.log('Aucun audio sauvegardé trouvé dans localStorage');
   }
 
   // Mettre à jour le minutage en temps réel
@@ -1926,13 +1937,14 @@ function setupAudioPlayer() {
 
     const reader = new FileReader();
     reader.onload = (e) => {
+      console.log('Nouveau fichier audio chargé');
       source.src = e.target.result;
       player.load();
       localStorage.setItem('userAudioBase64', e.target.result);
       localStorage.setItem('userAudioTime', '0');
-      // Réinitialiser le minutage après chargement
-      player.addEventListener('loadedmetadata', () => {
+      player.addEventListener('loadeddata', () => {
         player.currentTime = 0;
+        console.log('Nouveau fichier audio prêt, minutage réinitialisé');
       }, { once: true });
     };
     reader.readAsDataURL(file);
@@ -1944,6 +1956,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Vérifier si on est sur la page principale
   const currentPage = getPageName();
   if (currentPage === '' || currentPage === 'index') {
+    console.log('Initialisation de setupAudioPlayer sur la page principale');
     setupAudioPlayer();
   }
 
