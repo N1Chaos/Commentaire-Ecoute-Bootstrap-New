@@ -2016,25 +2016,7 @@ async function setupAudioPlayer() {
   });
 }
 
-// ==================== INITIALISATION ====================
-document.addEventListener("DOMContentLoaded", async () => {
-  // Vérifier si on est sur la page principale
-  const currentPage = getPageName();
-  console.log('Page actuelle:', currentPage);
-  if (currentPage === '' || currentPage === 'index') {
-    console.log('Initialisation de setupAudioPlayer sur la page principale');
-    await setupAudioPlayer();
-  }
-
-  Object.keys(PAGES).forEach(displayWordsForPage);
-
-  const savedVideoID = localStorage.getItem('youtubeVideoID');
-  if (savedVideoID) {
-    document.getElementById('youtubePlayer').src = `https://www.youtube.com/embed/${savedVideoID}`;
-    document.getElementById('videoUrl').value = `https://youtu.be/${savedVideoID}`;
-  }
-
-  // ==================== ENREGISTREMENT AUDIO ====================
+// ==================== ENREGISTREMENT AUDIO ====================
 async function setupAudioRecorder() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -2077,6 +2059,36 @@ async function setupAudioRecorder() {
     alert('Impossible d\'accéder au microphone. Vérifiez les autorisations.');
   }
 }
+
+// ==================== INITIALISATION ====================
+document.addEventListener("DOMContentLoaded", async () => {
+  // Vérifier si on est sur la page principale
+  const currentPage = getPageName();
+  console.log('Page actuelle:', currentPage);
+  if (currentPage === '' || currentPage === 'index') {
+    console.log('Initialisation de setupAudioPlayer sur la page principale');
+    await setupAudioPlayer();
+  }
+
+  Object.keys(PAGES).forEach(displayWordsForPage);
+
+  const savedVideoID = localStorage.getItem('youtubeVideoID');
+  if (savedVideoID) {
+    document.getElementById('youtubePlayer').src = `https://www.youtube.com/embed/${savedVideoID}`;
+    document.getElementById('videoUrl').value = `https://youtu.be/${savedVideoID}`;
+  }
+
+  setupAudioRecorder();
+
+  document.getElementById('downloadButton').onclick = () => {
+    if (!window.audioBlob) return alert('Aucun enregistrement disponible');
+    const fileName = document.getElementById('fileName').value || 'enregistrement';
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(window.audioBlob);
+    link.download = `${fileName}.wav`;
+    link.click();
+  };
+});
 
 // ==================== GÉNÉRATION FICHIER TEXTE ====================
 function generateTextFile() {
