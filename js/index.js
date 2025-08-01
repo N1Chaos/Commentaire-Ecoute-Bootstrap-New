@@ -1900,17 +1900,26 @@ function setupAudioPlayer() {
   const source = document.getElementById('audioSource');
   const fileInput = document.getElementById('audioFile');
 
+  // Recharger l'audio sauvegardé si disponible
   const savedAudio = localStorage.getItem('userAudioBase64');
   if (savedAudio) {
     source.src = savedAudio;
     player.load();
-    player.currentTime = parseFloat(localStorage.getItem('userAudioTime') || 0);
+    // Restaurer le minutage
+    const savedTime = parseFloat(localStorage.getItem('userAudioTime') || 0);
+    player.currentTime = savedTime;
+    // Écouter l'événement loadedmetadata pour s'assurer que le minutage est appliqué
+    player.addEventListener('loadedmetadata', () => {
+      player.currentTime = savedTime;
+    }, { once: true });
   }
 
+  // Mettre à jour le minutage en temps réel
   player.addEventListener('timeupdate', () => {
     localStorage.setItem('userAudioTime', player.currentTime);
   });
 
+  // Gérer l'importation d'un nouveau fichier audio
   fileInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -1921,10 +1930,42 @@ function setupAudioPlayer() {
       player.load();
       localStorage.setItem('userAudioBase64', e.target.result);
       localStorage.setItem('userAudioTime', '0');
+      // Réinitialiser le minutage après chargement
+      player.addEventListener('loadedmetadata', () => {
+        player.currentTime = 0;
+      }, { once: true });
     };
     reader.readAsDataURL(file);
   });
 }
+
+// ==================== INITIALISATION ====================
+document.addEventListener("DOMContentLoaded", () => {
+  // Vérifier si on est sur la page principale
+  const currentPage = getPageName();
+  if (currentPage === '' || currentPage === 'index') {
+    setupAudioPlayer();
+  }
+
+  Object.keys(PAGES).forEach(displayWordsForPage);
+
+  const savedVideoID = localStorage.getItem('youtubeVideoID');
+  if (savedVideoID) {
+    document.getElementById('youtubePlayer').src = `https://www.youtube.com/embed/${savedVideoID}`;
+    document.getElementById('videoUrl').value = `https://youtu.be/${savedVideoID}`;
+  }
+
+  setupAudioRecorder();
+
+  document.getElementById('downloadButton').onclick = () => {
+    if (!window.audioBlob) return alert('Aucun enregistrement disponible');
+    const fileName = document.getElementById('fileName').value || 'enregistrement';
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(window.audioBlob);
+    link.download = `${fileName}.wav`;
+    link.click();
+  };
+});
 
 // ==================== GÉNÉRATION FICHIER TEXTE ====================
 function generateTextFile() {
