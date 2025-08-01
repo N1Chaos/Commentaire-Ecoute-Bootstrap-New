@@ -1962,39 +1962,77 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // Initialiser la carte lorsque la modale s'ouvre
-var map = null; // Variable globale pour la carte
-var carteMondeModal = document.getElementById('carteMondeModal');
+    var map = null;
+    var geojsonLayer = null; // Variable pour la couche GeoJSON
+    var carteMondeModal = document.getElementById('carteMondeModal');
 
-carteMondeModal.addEventListener('shown.bs.modal', function () {
-  if (map === null) {
-    // Initialiser la carte avec Leaflet
-    map = L.map('map').setView([0, 0], 2); // Centrer sur le monde, zoom initial
+    carteMondeModal.addEventListener('shown.bs.modal', function () {
+      if (map === null) {
+        // Initialiser la carte avec Leaflet
+        map = L.map('map').setView([0, 0], 2);
 
-    // Ajouter les tuiles OpenStreetMap
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(map);
+        // Ajouter les tuiles OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+          maxZoom: 18
+        }).addTo(map);
 
-    // Exemple d'interaction : ajouter un marqueur au clic
-    map.on('click', function (e) {
-      L.marker(e.latlng).addTo(map)
-        .bindPopup('Coordonnées : ' + e.latlng.lat.toFixed(2) + ', ' + e.latlng.lng.toFixed(2))
-        .openPopup();
-    });
-  } else {
-    // Rafraîchir la carte si elle existe déjà
-    map.invalidateSize();
-  }
-});
+        // Charger les données GeoJSON des pays
+        fetch('https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson')
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Erreur lors du chargement du fichier GeoJSON');
+            }
+            return response.json();
+          })
+          .then(data => {
+            // Ajouter la couche GeoJSON
+            geojsonLayer = L.geoJSON(data, {
+              style: {
+                color: '#3388ff',
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.2
+              },
+              onEachFeature: function (feature, layer) {
+                // Attacher une popup à chaque pays
+                if (feature.properties && feature.properties.ADMIN) {
+                  layer.bindPopup(`<b>Pays :</b> ${feature.properties.ADMIN}<br><b>Code ISO :</b> ${feature.properties.ISO_A2 || 'N/A'}`);
+                }
 
-fetch('https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson')
-  .then(response => response.json())
-  .then(data => {
-    L.geoJSON(data, {
-      onEachFeature: function (feature, layer) {
-        layer.on('click', function () {
-          alert('Pays : ' + feature.properties.ADMIN);
-        });
+                // Événement de clic pour zoomer sur le pays
+                layer.on({
+                  click: function (e) {
+                    map.fitBounds(e.target.getBounds());
+                  },
+                  mouseover: function (e) {
+                    e.target.setStyle({
+                      fillOpacity: 0.5,
+                      weight: 3
+                    });
+                  },
+                  mouseout: function (e) {
+                    geojsonLayer.resetStyle(e.target); // Réinitialiser le style
+                  }
+                });
+              }
+            }).addTo(map);
+          })
+          .catch(error => {
+            console.error('Erreur lors du chargement GeoJSON :', error);
+            alert('Impossible de charger les données des pays. Vérifiez votre connexion ou l\'URL du GeoJSON.');
+          });
+      } else {
+        // Rafraîchir la carte si elle existe déjà
+        map.invalidateSize();
       }
-    }).addTo(map);
-  });
+    });
+
+    // Réinitialiser la carte lors de la fermeture de la modale
+    carteMondeModal.addEventListener('hidden.bs.modal', function () {
+      if (map !== null) {
+        map.remove();
+        map = null;
+        geojsonLayer = null;
+      }
+    });
