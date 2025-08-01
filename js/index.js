@@ -2034,17 +2034,49 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById('videoUrl').value = `https://youtu.be/${savedVideoID}`;
   }
 
-  setupAudioRecorder();
+  // ==================== ENREGISTREMENT AUDIO ====================
+async function setupAudioRecorder() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    let audioChunks = [];
+    const recorder = new MediaRecorder(stream);
+    const recordButton = document.getElementById('recordButton');
+    const recordingIndicator = document.getElementById('recordingIndicator');
 
-  document.getElementById('downloadButton').onclick = () => {
-    if (!window.audioBlob) return alert('Aucun enregistrement disponible');
-    const fileName = document.getElementById('fileName').value || 'enregistrement';
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(window.audioBlob);
-    link.download = `${fileName}.wav`;
-    link.click();
-  };
-});
+    recorder.ondataavailable = e => audioChunks.push(e.data);
+    recorder.onstop = () => {
+      const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+      const audioUrl = URL.createObjectURL(audioBlob);
+      document.getElementById('audioPlayback').src = audioUrl;
+      window.audioBlob = audioBlob;
+      // Réinitialiser le bouton et le repère visuel
+      recordButton.classList.remove('btn-warning');
+      recordButton.classList.add('btn-danger');
+      recordButton.innerHTML = '<i class="bi bi-mic-fill"></i> Enregistrer votre commentaire';
+      recordingIndicator.style.display = 'none';
+      console.log('Enregistrement arrêté');
+    };
+
+    recordButton.onclick = () => {
+      if (recorder.state === 'inactive') {
+        audioChunks = [];
+        recorder.start();
+        // Changer le style et le texte du bouton
+        recordButton.classList.remove('btn-danger');
+        recordButton.classList.add('btn-warning');
+        recordButton.innerHTML = '<i class="bi bi-stop-fill"></i> Arrêter l\'enregistrement';
+        // Afficher le repère visuel
+        recordingIndicator.style.display = 'inline';
+        console.log('Enregistrement démarré');
+      } else {
+        recorder.stop();
+      }
+    };
+  } catch (error) {
+    console.error('Erreur microphone:', error);
+    alert('Impossible d\'accéder au microphone. Vérifiez les autorisations.');
+  }
+}
 
 // ==================== GÉNÉRATION FICHIER TEXTE ====================
 function generateTextFile() {
