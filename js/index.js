@@ -2250,6 +2250,36 @@ fetch('data/countries.json')
     alert('Impossible de charger les données des pays (drapeaux et langues). Les informations de base (nom, capitale, population) seront affichées.');
   });
 
+// Table de correspondance pour traduire les codes/noms de langues en français
+const languageTranslations = {
+  'eng': 'Anglais',
+  'fra': 'Français',
+  'spa': 'Espagnol',
+  'deu': 'Allemand',
+  'ita': 'Italien',
+  'por': 'Portugais',
+  'rus': 'Russe',
+  'ara': 'Arabe',
+  'hin': 'Hindi',
+  'zho': 'Chinois',
+  'jpn': 'Japonais',
+  'kor': 'Coréen',
+  // Ajoutez d'autres langues selon les besoins
+  // Fallback pour les noms en anglais
+  'English': 'Anglais',
+  'Spanish': 'Espagnol',
+  'French': 'Français',
+  'German': 'Allemand',
+  'Italian': 'Italien',
+  'Portuguese': 'Portugais',
+  'Russian': 'Russe',
+  'Arabic': 'Arabe',
+  'Hindi': 'Hindi',
+  'Chinese': 'Chinois',
+  'Japanese': 'Japonais',
+  'Korean': 'Coréen'
+};
+
 var map = null;
 var geojsonLayer = null;
 var carteMondeModal = document.getElementById('carteMondeModal');
@@ -2282,10 +2312,17 @@ carteMondeModal.addEventListener('shown.bs.modal', function () {
             const correctedIso = isoCorrections[isoCode] || isoCode;
             const countryInfo = countryData[correctedIso] || {};
             const flagUrl = countryInfo.flag || 'N/A';
-            const languages = countryInfo.languages || 'N/A';
+            // Traduire les langues en français
+            let languages = countryInfo.languages || 'N/A';
+            if (languages !== 'N/A') {
+              languages = languages
+                .split(', ')
+                .map(lang => languageTranslations[lang] || lang)
+                .join(', ');
+            }
             const capital = feature.properties.CAPITAL || capitalFallbacks[correctedIso] || 'N/A';
             const population = feature.properties.POP_EST ? feature.properties.POP_EST.toLocaleString('fr-FR') : 'N/A';
-            // Utiliser NAME_FR pour les noms en français, sinon revenir à ADMIN
+            // Utiliser NAME_FR pour les noms en français
             const countryName = feature.properties.NAME_FR || feature.properties.ADMIN || 'N/A';
 
             // Journal de débogage pour les pays avec capitale manquante
