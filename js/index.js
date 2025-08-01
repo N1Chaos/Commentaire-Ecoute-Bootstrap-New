@@ -2219,116 +2219,126 @@ document.addEventListener("DOMContentLoaded", () => {
   'UM': '', // Pas de capitale unique
   'EH': 'Laâyoune'
 };
-    fetch('data/countries.json')
+
+fetch('data/countries.json')
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`Erreur HTTP ${response.status}: Impossible de charger data/countries.json. Vérifiez que le fichier existe dans le dossier data/`);
+    }
+    return response.json();
+  })
+  .then(data => {
+    if (!Array.isArray(data)) {
+      throw new Error('Le fichier countries.json doit contenir une liste d\'objets');
+    }
+    if (data.length > 0 && (!data[0].cca2 || !data[0].flags || !data[0].languages)) {
+      console.warn('Avertissement : Le fichier countries.json peut ne pas avoir la structure attendue (champs cca2, flags, languages manquants)');
+    }
+    data.forEach(country => {
+      if (country.cca2) {
+        countryData[country.cca2] = {
+          flag: country.flags?.png || 'N/A',
+          languages: country.languages && Object.keys(country.languages).length > 0 ? Object.values(country.languages).join(', ') : 'N/A'
+        };
+      }
+    });
+    console.log('Données des pays chargées :', Object.keys(countryData).length, 'pays');
+    console.log('Exemple de données pour FR :', countryData['FR']);
+  })
+  .catch(error => {
+    console.error('Erreur lors du chargement des données des pays :', error);
+    alert('Impossible de charger les données des pays (drapeaux et langues). Les informations de base (nom, capitale, population) seront affichées.');
+  });
+
+var map = null;
+var geojsonLayer = null;
+var carteMondeModal = document.getElementById('carteMondeModal');
+
+carteMondeModal.addEventListener('shown.bs.modal', function () {
+  if (map === null) {
+    map = L.map('map').setView([0, 0], 2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 18
+    }).addTo(map);
+
+    fetch('https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson')
       .then(response => {
         if (!response.ok) {
-          throw new Error(`Erreur HTTP ${response.status}: Impossible de charger data/countries.json. Vérifiez que le fichier existe dans le dossier data/`);
+          throw new Error(`Erreur HTTP ${response.status}: Impossible de charger le GeoJSON`);
         }
         return response.json();
       })
       .then(data => {
-        if (!Array.isArray(data)) {
-          throw new Error('Le fichier countries.json doit contenir une liste d\'objets');
-        }
-        if (data.length > 0 && (!data[0].cca2 || !data[0].flags || !data[0].languages)) {
-          console.warn('Avertissement : Le fichier countries.json peut ne pas avoir la structure attendue (champs cca2, flags, languages manquants)');
-        }
-        data.forEach(country => {
-          if (country.cca2) {
-            countryData[country.cca2] = {
-              flag: country.flags?.png || 'N/A',
-              languages: country.languages && Object.keys(country.languages).length > 0 ? Object.values(country.languages).join(', ') : 'N/A'
-            };
+        geojsonLayer = L.geoJSON(data, {
+          style: {
+            color: '#3388ff',
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.2
+          },
+          onEachFeature: function (feature, layer) {
+            const isoCode = feature.properties.ISO_A2 || 'N/A';
+            const correctedIso = isoCorrections[isoCode] || isoCode;
+            const countryInfo = countryData[correctedIso] || {};
+            const flagUrl = countryInfo.flag || 'N/A';
+            const languages = countryInfo.languages || 'N/A';
+            const capital = feature.properties.CAPITAL || capitalFallbacks[correctedIso] || 'N/A';
+            const population = feature.properties.POP_EST ? feature.properties.POP_EST.toLocaleString('fr-FR') : 'N/A';
+            // Utiliser NAME_FR pour les noms en français, sinon revenir à ADMIN
+            const countryName = feature.properties.NAME_FR || feature.properties.ADMIN || 'N/A';
+
+            // Journal de débogage pour les pays avec capitale manquante
+            if (!feature.properties.CAPITAL) {
+              console.log(`Capitale manquante pour ${countryName} :`, {
+                ISO_A2: isoCode,
+                CorrectedISO: correctedIso,
+                FallbackCapital: capitalFallbacks[correctedIso] || 'N/A'
+              });
+            }
+
+            let popupContent = `<b>Pays :</b> ${countryName}<br>`;
+            popupContent += `<b>Code ISO :</b> ${correctedIso}<br>`;
+            popupContent += `<b>Capitale :</b> ${capital}<br>`;
+            popupContent += `<b>Population :</b> ${population}<br>`;
+            popupContent += `<b>Langue(s) officielle(s) :</b> ${languages}<br>`;
+            if (flagUrl !== 'N/A') {
+              popupContent += `<b>Drapeau :</b><br><img src="${flagUrl}" alt="Drapeau de ${countryName}" style="width: 50px; height: auto;" />`;
+            } else {
+              popupContent += `<b>Drapeau :</b> Non disponible<br>`;
+            }
+
+            layer.bindPopup(popupContent);
+            layer.on({
+              click: function (e) {
+                map.fitBounds(e.target.getBounds());
+              },
+              mouseover: function (e) {
+                e.target.setStyle({
+                  fillOpacity: 0.5,
+                  weight: 3
+                });
+              },
+              mouseout: function (e) {
+                geojsonLayer.resetStyle(e.target);
+              }
+            });
           }
-        });
-        console.log('Données des pays chargées :', Object.keys(countryData).length, 'pays');
-        console.log('Exemple de données pour FR :', countryData['FR']);
+        }).addTo(map);
       })
       .catch(error => {
-        console.error('Erreur lors du chargement des données des pays :', error);
-        alert('Impossible de charger les données des pays (drapeaux et langues). Les informations de base (nom, capitale, population) seront affichées.');
+        console.error('Erreur lors du chargement GeoJSON :', error);
+        alert('Impossible de charger les données des pays. Vérifiez votre connexion ou l\'URL du GeoJSON.');
       });
-    var map = null;
-    var geojsonLayer = null;
-    var carteMondeModal = document.getElementById('carteMondeModal');
-    carteMondeModal.addEventListener('shown.bs.modal', function () {
-      if (map === null) {
-        map = L.map('map').setView([0, 0], 2);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-          maxZoom: 18
-        }).addTo(map);
-        fetch('https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson')
-          .then(response => {
-            if (!response.ok) {
-              throw new Error(`Erreur HTTP ${response.status}: Impossible de charger le GeoJSON`);
-            }
-            return response.json();
-          })
-          .then(data => {
-            geojsonLayer = L.geoJSON(data, {
-              style: {
-                color: '#3388ff',
-                weight: 2,
-                opacity: 1,
-                fillOpacity: 0.2
-              },
-              onEachFeature: function (feature, layer) {
-                const isoCode = feature.properties.ISO_A2 || 'N/A';
-                const correctedIso = isoCorrections[isoCode] || isoCode;
-                const countryInfo = countryData[correctedIso] || {};
-                const flagUrl = countryInfo.flag || 'N/A';
-                const languages = countryInfo.languages || 'N/A';
-                const capital = feature.properties.CAPITAL || capitalFallbacks[correctedIso] || 'N/A';
-                const population = feature.properties.POP_EST ? feature.properties.POP_EST.toLocaleString('fr-FR') : 'N/A';
-                // Journal de débogage pour les pays avec capitale manquante
-                if (!feature.properties.CAPITAL) {
-                  console.log(`Capitale manquante pour ${feature.properties.ADMIN} :`, {
-                    ISO_A2: isoCode,
-                    CorrectedISO: correctedIso,
-                    FallbackCapital: capitalFallbacks[correctedIso] || 'N/A'
-                  });
-                }
-                let popupContent = `<b>Pays :</b> ${feature.properties.ADMIN}<br>`;
-                popupContent += `<b>Code ISO :</b> ${correctedIso}<br>`;
-                popupContent += `<b>Capitale :</b> ${capital}<br>`;
-                popupContent += `<b>Population :</b> ${population}<br>`;
-                popupContent += `<b>Langue(s) officielle(s) :</b> ${languages}<br>`;
-                if (flagUrl !== 'N/A') {
-                  popupContent += `<b>Drapeau :</b><br><img src="${flagUrl}" alt="Drapeau de ${feature.properties.ADMIN}" style="width: 50px; height: auto;" />`;
-                } else {
-                  popupContent += `<b>Drapeau :</b> Non disponible<br>`;
-                }
-                layer.bindPopup(popupContent);
-                layer.on({
-                  click: function (e) {
-                    map.fitBounds(e.target.getBounds());
-                  },
-                  mouseover: function (e) {
-                    e.target.setStyle({
-                      fillOpacity: 0.5,
-                      weight: 3
-                    });
-                  },
-                  mouseout: function (e) {
-                    geojsonLayer.resetStyle(e.target);
-                  }
-                });
-              }
-            }).addTo(map);
-          })
-          .catch(error => {
-            console.error('Erreur lors du chargement GeoJSON :', error);
-            alert('Impossible de charger les données des pays. Vérifiez votre connexion ou l\'URL du GeoJSON.');
-          });
-      } else {
-        map.invalidateSize();
-      }
-    });
-    carteMondeModal.addEventListener('hidden.bs.modal', function () {
-      if (map !== null) {
-        map.remove();
-        map = null;
-        geojsonLayer = null;
-      }
-    });
+  } else {
+    map.invalidateSize();
+  }
+});
+
+carteMondeModal.addEventListener('hidden.bs.modal', function () {
+  if (map !== null) {
+    map.remove();
+    map = null;
+    geojsonLayer = null;
+  }
+});
