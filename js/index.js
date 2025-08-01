@@ -2029,21 +2029,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 const countryInfo = countryData[correctedIso] || {};
                 const flagUrl = countryInfo.flag || 'N/A';
                 const languages = countryInfo.languages || 'N/A';
-                const capital = feature.properties.CAPITAL || 'N/A';
+                const capital = feature.properties.CAPITAL || (correctedIso === 'FR' ? 'Paris' : 'N/A');
                 const population = feature.properties.POP_EST ? feature.properties.POP_EST.toLocaleString('fr-FR') : 'N/A';
-                // Journal de débogage pour la France
-                if (feature.properties.ADMIN === 'France') {
-                  console.log('Données GeoJSON pour la France :', {
-                    ISO_A2: feature.properties.ISO_A2,
-                    ADMIN: feature.properties.ADMIN,
-                    CAPITAL: feature.properties.CAPITAL,
-                    POP_EST: feature.properties.POP_EST,
-                    CorrectedISO: correctedIso,
-                    CountryData: countryInfo
-                  });
-                }
+                // Journal de débogage pour tous les pays
+                console.log(`Données pour ${feature.properties.ADMIN} :`, {
+                  ISO_A2: isoCode,
+                  CorrectedISO: correctedIso,
+                  CountryData: countryInfo,
+                  CAPITAL: feature.properties.CAPITAL,
+                  POP_EST: feature.properties.POP_EST
+                });
                 let popupContent = `<b>Pays :</b> ${feature.properties.ADMIN}<br>`;
-                popupContent += `<b>Code ISO :</b> ${isoCode}<br>`;
+                popupContent += `<b>Code ISO :</b> ${correctedIso}<br>`;
                 popupContent += `<b>Capitale :</b> ${capital}<br>`;
                 popupContent += `<b>Population :</b> ${population}<br>`;
                 popupContent += `<b>Langue(s) officielle(s) :</b> ${languages}<br>`;
