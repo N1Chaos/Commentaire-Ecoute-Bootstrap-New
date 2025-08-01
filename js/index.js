@@ -1908,19 +1908,32 @@ function setupAudioPlayer() {
   // Recharger l'audio sauvegardé si disponible
   const savedAudio = localStorage.getItem('userAudioBase64');
   if (savedAudio) {
-    console.log('Tentative de chargement de l\'audio depuis localStorage');
-    source.src = savedAudio;
-    player.load();
-    // Restaurer le minutage
-    const savedTime = parseFloat(localStorage.getItem('userAudioTime') || 0);
-    console.log('Minutage restauré:', savedTime);
-    player.addEventListener('loadeddata', () => {
-      player.currentTime = savedTime;
-      console.log('Audio chargé, minutage appliqué:', player.currentTime);
-    }, { once: true });
-    player.addEventListener('error', (e) => {
-      console.error('Erreur lors du chargement de l\'audio:', e);
-    }, { once: true });
+    console.log('Audio trouvé dans localStorage, tentative de chargement');
+    try {
+      // Forcer la réinitialisation de l'élément source
+      source.remove();
+      const newSource = document.createElement('source');
+      newSource.id = 'audioSource';
+      newSource.src = savedAudio;
+      newSource.type = 'audio/mp3'; // Assumer le type mp3, ajuster si nécessaire
+      player.appendChild(newSource);
+      player.load();
+      console.log('Nouvel élément source créé et chargé');
+
+      // Restaurer le minutage
+      const savedTime = parseFloat(localStorage.getItem('userAudioTime') || 0);
+      console.log('Minutage à restaurer:', savedTime);
+      player.addEventListener('loadeddata', () => {
+        player.currentTime = savedTime;
+        console.log('Audio chargé, minutage appliqué:', player.currentTime);
+      }, { once: true });
+      player.addEventListener('error', (e) => {
+        console.error('Erreur lors du chargement de l\'audio:', e);
+        alert('Erreur lors du rechargement de l\'audio. Essayez de recharger le fichier.');
+      }, { once: true });
+    } catch (error) {
+      console.error('Erreur lors de la configuration de l\'audio:', error);
+    }
   } else {
     console.log('Aucun audio sauvegardé trouvé dans localStorage');
   }
@@ -1928,24 +1941,39 @@ function setupAudioPlayer() {
   // Mettre à jour le minutage en temps réel
   player.addEventListener('timeupdate', () => {
     localStorage.setItem('userAudioTime', player.currentTime);
+    console.log('Minutage mis à jour:', player.currentTime);
   });
 
   // Gérer l'importation d'un nouveau fichier audio
   fileInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
-    if (!file) return;
+    if (!file) {
+      console.log('Aucun fichier sélectionné');
+      return;
+    }
 
+    console.log('Importation d\'un nouveau fichier:', file.name);
     const reader = new FileReader();
     reader.onload = (e) => {
-      console.log('Nouveau fichier audio chargé');
-      source.src = e.target.result;
-      player.load();
-      localStorage.setItem('userAudioBase64', e.target.result);
-      localStorage.setItem('userAudioTime', '0');
-      player.addEventListener('loadeddata', () => {
-        player.currentTime = 0;
-        console.log('Nouveau fichier audio prêt, minutage réinitialisé');
-      }, { once: true });
+      try {
+        const audioData = e.target.result;
+        source.src = audioData;
+        player.load();
+        localStorage.setItem('userAudioBase64', audioData);
+        localStorage.setItem('userAudioTime', '0');
+        console.log('Nouveau fichier audio sauvegardé dans localStorage');
+        player.addEventListener('loadeddata', () => {
+          player.currentTime = 0;
+          console.log('Nouveau fichier audio chargé, minutage réinitialisé');
+        }, { once: true });
+      } catch (error) {
+        console.error('Erreur lors du chargement du nouveau fichier:', error);
+        alert('Erreur lors du chargement du fichier audio.');
+      }
+    };
+    reader.onerror = (e) => {
+      console.error('Erreur de lecture du fichier:', e);
+      alert('Impossible de lire le fichier audio.');
     };
     reader.readAsDataURL(file);
   });
@@ -1955,6 +1983,7 @@ function setupAudioPlayer() {
 document.addEventListener("DOMContentLoaded", () => {
   // Vérifier si on est sur la page principale
   const currentPage = getPageName();
+  console.log('Page actuelle:', currentPage);
   if (currentPage === '' || currentPage === 'index') {
     console.log('Initialisation de setupAudioPlayer sur la page principale');
     setupAudioPlayer();
