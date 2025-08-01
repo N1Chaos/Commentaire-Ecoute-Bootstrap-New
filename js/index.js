@@ -1961,9 +1961,36 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 });
 
-// Initialiser la carte lorsque la modale s'ouvre
+// Stocker les données des pays
+    let countryData = {};
+
+    // Charger les données des pays depuis un fichier JSON local
+    fetch('data/countries.json')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Erreur lors du chargement des données des pays');
+        }
+        return response.json();
+      })
+      .then(data => {
+        // Créer un dictionnaire avec ISO_A2 comme clé
+        data.forEach(country => {
+          if (country.cca2) {
+            countryData[country.cca2] = {
+              flag: country.flags?.png || 'N/A',
+              languages: country.languages ? Object.values(country.languages).join(', ') : 'N/A'
+            };
+          }
+        });
+      })
+      .catch(error => {
+        console.error('Erreur lors du chargement des données des pays :', error);
+        alert('Impossible de charger les données des pays (drapeaux et langues). Certaines informations peuvent être manquantes.');
+      });
+
+    // Initialiser la carte lorsque la modale s'ouvre
     var map = null;
-    var geojsonLayer = null; // Variable pour la couche GeoJSON
+    var geojsonLayer = null;
     var carteMondeModal = document.getElementById('carteMondeModal');
 
     carteMondeModal.addEventListener('shown.bs.modal', function () {
@@ -1995,12 +2022,30 @@ document.addEventListener("DOMContentLoaded", () => {
                 fillOpacity: 0.2
               },
               onEachFeature: function (feature, layer) {
-                // Attacher une popup à chaque pays
-                if (feature.properties && feature.properties.ADMIN) {
-                  layer.bindPopup(`<b>Pays :</b> ${feature.properties.ADMIN}<br><b>Code ISO :</b> ${feature.properties.ISO_A2 || 'N/A'}`);
+                // Récupérer les données du pays
+                const isoCode = feature.properties.ISO_A2 || 'N/A';
+                const countryInfo = countryData[isoCode] || {};
+                const flagUrl = countryInfo.flag || 'N/A';
+                const languages = countryInfo.languages || 'N/A';
+                const capital = feature.properties.CAPITAL || 'N/A';
+                const population = feature.properties.POP_EST ? feature.properties.POP_EST.toLocaleString('fr-FR') : 'N/A';
+
+                // Créer le contenu de la popup
+                let popupContent = `<b>Pays :</b> ${feature.properties.ADMIN}<br>`;
+                popupContent += `<b>Code ISO :</b> ${isoCode}<br>`;
+                popupContent += `<b>Capitale :</b> ${capital}<br>`;
+                popupContent += `<b>Population :</b> ${population}<br>`;
+                popupContent += `<b>Langue(s) officielle(s) :</b> ${languages}<br>`;
+                if (flagUrl !== 'N/A') {
+                  popupContent += `<b>Drapeau :</b><br><img src="${flagUrl}" alt="Drapeau de ${feature.properties.ADMIN}" style="width: 50px; height: auto;" />`;
+                } else {
+                  popupContent += `<b>Drapeau :</b> Non disponible<br>`;
                 }
 
-                // Événement de clic pour zoomer sur le pays
+                // Attacher la popup
+                layer.bindPopup(popupContent);
+
+                // Événements de clic et survol
                 layer.on({
                   click: function (e) {
                     map.fitBounds(e.target.getBounds());
@@ -2012,7 +2057,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     });
                   },
                   mouseout: function (e) {
-                    geojsonLayer.resetStyle(e.target); // Réinitialiser le style
+                    geojsonLayer.resetStyle(e.target);
                   }
                 });
               }
