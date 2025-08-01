@@ -1894,11 +1894,50 @@ async function setupAudioRecorder() {
   }
 }
 
-// Variable globale temporaire pour stocker l'audio (solution de secours)
-window.audioFallback = null;
+// ==================== FONCTIONS IndexedDB ====================
+async function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('AudioDB', 1);
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      db.createObjectStore('audioStore', { keyPath: 'id' });
+    };
+    request.onsuccess = (event) => resolve(event.target.result);
+    request.onerror = (event) => reject(event.target.error);
+  });
+}
+
+async function saveAudioToDB(blob, time) {
+  try {
+    const db = await openDB();
+    const transaction = db.transaction(['audioStore'], 'readwrite');
+    const store = transaction.objectStore('audioStore');
+    await store.put({ id: 'userAudio', blob, time });
+    console.log('Audio et minutage sauvegardés dans IndexedDB');
+  } catch (error) {
+    console.error('Erreur lors de la sauvegarde dans IndexedDB:', error);
+    alert('Erreur lors de la sauvegarde du fichier audio.');
+  }
+}
+
+async function loadAudioFromDB() {
+  try {
+    const db = await openDB();
+    const transaction = db.transaction(['audioStore'], 'readonly');
+    const store = transaction.objectStore('audioStore');
+    const request = store.get('userAudio');
+    return new Promise((resolve, reject) => {
+      request.onsuccess = (event) => resolve(event.target.result);
+      request.onerror = (event) => reject(event.target.error);
+    });
+  } catch (error) {
+    console.error('Erreur lors du chargement depuis IndexedDB:', error);
+    return null;
+  }
+}
 
 // ==================== GESTION AUDIO UTILISATEUR ====================
-function setupAudioPlayer() {
+async function setupAudioPlayer() {
   const player = document.getElementById('audioPlayer');
   const source = document.getElementById('audioSource');
   const fileInput = document.getElementById('audioFile');
@@ -1909,15 +1948,15 @@ function setupAudioPlayer() {
   }
 
   // Recharger l'audio sauvegardé si disponible
-  const savedAudio = localStorage.getItem('userAudioBase64');
-  if (savedAudio) {
-    console.log('Audio trouvé dans localStorage, taille (caractères):', savedAudio.length);
+  const savedAudioData = await loadAudioFromDB();
+  if (savedAudioData && savedAudioData.blob) {
+    console.log('Audio trouvé dans IndexedDB');
     try {
-      source.src = savedAudio;
-      window.audioFallback = savedAudio; // Sauvegarde temporaire
+      const audioUrl = URL.createObjectURL(savedAudioData.blob);
+      source.src = audioUrl;
       player.load();
       console.log('Audio chargé dans le lecteur');
-      const savedTime = parseFloat(localStorage.getItem('userAudioTime') || 0);
+      const savedTime = parseFloat(savedAudioData.time || 0);
       console.log('Minutage à restaurer:', savedTime);
       player.addEventListener('canplaythrough', () => {
         player.currentTime = savedTime;
@@ -1931,28 +1970,16 @@ function setupAudioPlayer() {
       console.error('Erreur lors de la configuration de l\'audio:', error);
       alert('Erreur lors du rechargement de l\'audio. Essayez de réimporter le fichier.');
     }
-  } else if (window.audioFallback) {
-    console.log('Aucun audio dans localStorage, mais audioFallback disponible');
-    try {
-      source.src = window.audioFallback;
-      player.load();
-      console.log('Audio chargé depuis audioFallback');
-      const savedTime = parseFloat(localStorage.getItem('userAudioTime') || 0);
-      console.log('Minutage à restaurer (fallback):', savedTime);
-      player.addEventListener('canplaythrough', () => {
-        player.currentTime = savedTime;
-        console.log('Audio prêt (fallback), minutage appliqué:', player.currentTime);
-      }, { once: true });
-    } catch (error) {
-      console.error('Erreur lors de la configuration de l\'audio (fallback):', error);
-    }
   } else {
-    console.log('Aucun audio sauvegardé dans localStorage ou audioFallback');
+    console.log('Aucun audio sauvegardé dans IndexedDB');
   }
 
   // Mettre à jour le minutage en temps réel
-  player.addEventListener('timeupdate', () => {
-    localStorage.setItem('userAudioTime', player.currentTime);
+  player.addEventListener('timeupdate', async () => {
+    const savedAudioData = await loadAudioFromDB();
+    if (savedAudioData && savedAudioData.blob) {
+      await saveAudioToDB(savedAudioData.blob, player.currentTime);
+    }
   });
 
   // Gérer l'importation d'un nouveau fichier audio
@@ -1964,23 +1991,14 @@ function setupAudioPlayer() {
     }
 
     console.log('Importation d\'un nouveau fichier:', file.name, 'Taille (octets):', file.size);
-    // Vérifier la taille du fichier (limite de 3 Mo pour éviter les problèmes)
-    if (file.size > 3 * 1024 * 1024) {
-      alert('Le fichier est trop volumineux (> 3 Mo). Veuillez utiliser un fichier plus petit.');
-      return;
-    }
-
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
         const audioData = e.target.result;
-        console.log('Fichier audio lu, taille base64 (caractères):', audioData.length);
         source.src = audioData;
         player.load();
-        localStorage.setItem('userAudioBase64', audioData);
-        window.audioFallback = audioData; // Sauvegarde temporaire
-        localStorage.setItem('userAudioTime', '0');
-        console.log('Nouveau fichier audio sauvegardé dans localStorage et audioFallback');
+        await saveAudioToDB(file, 0); // Stocker le fichier brut (Blob) et réinitialiser le minutage
+        console.log('Nouveau fichier audio sauvegardé dans IndexedDB');
         player.addEventListener('canplaythrough', () => {
           player.currentTime = 0;
           console.log('Nouveau fichier audio prêt, minutage réinitialisé');
@@ -1994,18 +2012,18 @@ function setupAudioPlayer() {
       console.error('Erreur de lecture du fichier:', e);
       alert('Impossible de lire le fichier audio.');
     };
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(file); // Toujours nécessaire pour charger dans le lecteur
   });
 }
 
 // ==================== INITIALISATION ====================
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   // Vérifier si on est sur la page principale
   const currentPage = getPageName();
   console.log('Page actuelle:', currentPage);
   if (currentPage === '' || currentPage === 'index') {
     console.log('Initialisation de setupAudioPlayer sur la page principale');
-    setupAudioPlayer();
+    await setupAudioPlayer();
   }
 
   Object.keys(PAGES).forEach(displayWordsForPage);
