@@ -1908,34 +1908,28 @@ function setupAudioPlayer() {
   // Recharger l'audio sauvegardé si disponible
   const savedAudio = localStorage.getItem('userAudioBase64');
   if (savedAudio) {
-    console.log('Audio trouvé dans localStorage, tentative de chargement');
+    console.log('Audio trouvé dans localStorage, taille (caractères):', savedAudio.length);
     try {
-      // Forcer la réinitialisation de l'élément source
-      source.remove();
-      const newSource = document.createElement('source');
-      newSource.id = 'audioSource';
-      newSource.src = savedAudio;
-      newSource.type = 'audio/mp3'; // Assumer le type mp3, ajuster si nécessaire
-      player.appendChild(newSource);
+      source.src = savedAudio;
       player.load();
-      console.log('Nouvel élément source créé et chargé');
-
-      // Restaurer le minutage
+      console.log('Audio chargé dans le lecteur');
       const savedTime = parseFloat(localStorage.getItem('userAudioTime') || 0);
       console.log('Minutage à restaurer:', savedTime);
-      player.addEventListener('loadeddata', () => {
+      // Attendre que l'audio soit prêt avant d'appliquer le minutage
+      player.addEventListener('canplay', () => {
         player.currentTime = savedTime;
-        console.log('Audio chargé, minutage appliqué:', player.currentTime);
+        console.log('Audio prêt, minutage appliqué:', player.currentTime);
       }, { once: true });
       player.addEventListener('error', (e) => {
         console.error('Erreur lors du chargement de l\'audio:', e);
-        alert('Erreur lors du rechargement de l\'audio. Essayez de recharger le fichier.');
+        alert('Erreur lors du rechargement du fichier audio. Veuillez réimporter le fichier.');
       }, { once: true });
     } catch (error) {
       console.error('Erreur lors de la configuration de l\'audio:', error);
+      alert('Erreur lors du rechargement de l\'audio. Essayez de réimporter le fichier.');
     }
   } else {
-    console.log('Aucun audio sauvegardé trouvé dans localStorage');
+    console.log('Aucun audio sauvegardé dans localStorage');
   }
 
   // Mettre à jour le minutage en temps réel
@@ -1952,19 +1946,26 @@ function setupAudioPlayer() {
       return;
     }
 
-    console.log('Importation d\'un nouveau fichier:', file.name);
+    console.log('Importation d\'un nouveau fichier:', file.name, 'Taille (octets):', file.size);
+    // Vérifier la taille du fichier (limite approximative de 5 Mo pour localStorage)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Le fichier est trop volumineux (> 5 Mo). Veuillez utiliser un fichier plus petit.');
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
         const audioData = e.target.result;
+        console.log('Fichier audio lu, taille base64 (caractères):', audioData.length);
         source.src = audioData;
         player.load();
         localStorage.setItem('userAudioBase64', audioData);
         localStorage.setItem('userAudioTime', '0');
         console.log('Nouveau fichier audio sauvegardé dans localStorage');
-        player.addEventListener('loadeddata', () => {
+        player.addEventListener('canplay', () => {
           player.currentTime = 0;
-          console.log('Nouveau fichier audio chargé, minutage réinitialisé');
+          console.log('Nouveau fichier audio prêt, minutage réinitialisé');
         }, { once: true });
       } catch (error) {
         console.error('Erreur lors du chargement du nouveau fichier:', error);
