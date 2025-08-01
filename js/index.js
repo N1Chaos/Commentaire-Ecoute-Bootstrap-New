@@ -1960,3 +1960,41 @@ document.addEventListener("DOMContentLoaded", () => {
     link.click();
   };
 });
+
+// Initialiser la carte lorsque la modale s'ouvre
+var map = null; // Variable globale pour la carte
+var carteMondeModal = document.getElementById('carteMondeModal');
+
+carteMondeModal.addEventListener('shown.bs.modal', function () {
+  if (map === null) {
+    // Initialiser la carte avec Leaflet
+    map = L.map('map').setView([0, 0], 2); // Centrer sur le monde, zoom initial
+
+    // Ajouter les tuiles OpenStreetMap
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    // Exemple d'interaction : ajouter un marqueur au clic
+    map.on('click', function (e) {
+      L.marker(e.latlng).addTo(map)
+        .bindPopup('Coordonnées : ' + e.latlng.lat.toFixed(2) + ', ' + e.latlng.lng.toFixed(2))
+        .openPopup();
+    });
+  } else {
+    // Rafraîchir la carte si elle existe déjà
+    map.invalidateSize();
+  }
+});
+
+fetch('https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson')
+  .then(response => response.json())
+  .then(data => {
+    L.geoJSON(data, {
+      onEachFeature: function (feature, layer) {
+        layer.on('click', function () {
+          alert('Pays : ' + feature.properties.ADMIN);
+        });
+      }
+    }).addTo(map);
+  });

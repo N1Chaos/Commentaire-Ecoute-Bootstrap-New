@@ -14,6 +14,15 @@
 
   <!-- Custom CSS -->
   <link rel="stylesheet" href="css/index.css"/>
+  <!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  
+  <!-- Meta tags for SEO -->
+  <meta name="description" content="Écoutez, commentez et partagez vos impressions musicales. Un outil interactif pour commenter la musique."/>
+  <meta name="keywords" content="musique, commentaires, écoute, audio, vidéo, interaction"/>
+  <meta name="Amar, Sagiadinos" content="Votre Nom ou Organisation"/>
   
 </head>
 
@@ -136,11 +145,11 @@
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="carteMondeModalLabel">Carte du monde</h5>
+        <h5 class="modal-title" id="carteMondeModalLabel">Carte du monde interactive</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body text-center">
-        <img src="images/carte_du_monde.jpg" class="img-fluid" alt="Carte du monde">
+      <div class="modal-body">
+        <div id="map" style="height: 500px;"></div> <!-- Conteneur pour la carte -->
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
