@@ -1894,6 +1894,9 @@ async function setupAudioRecorder() {
   }
 }
 
+// Variable globale temporaire pour stocker l'audio (solution de secours)
+window.audioFallback = null;
+
 // ==================== GESTION AUDIO UTILISATEUR ====================
 function setupAudioPlayer() {
   const player = document.getElementById('audioPlayer');
@@ -1911,12 +1914,12 @@ function setupAudioPlayer() {
     console.log('Audio trouvé dans localStorage, taille (caractères):', savedAudio.length);
     try {
       source.src = savedAudio;
+      window.audioFallback = savedAudio; // Sauvegarde temporaire
       player.load();
       console.log('Audio chargé dans le lecteur');
       const savedTime = parseFloat(localStorage.getItem('userAudioTime') || 0);
       console.log('Minutage à restaurer:', savedTime);
-      // Attendre que l'audio soit prêt avant d'appliquer le minutage
-      player.addEventListener('canplay', () => {
+      player.addEventListener('canplaythrough', () => {
         player.currentTime = savedTime;
         console.log('Audio prêt, minutage appliqué:', player.currentTime);
       }, { once: true });
@@ -1928,14 +1931,28 @@ function setupAudioPlayer() {
       console.error('Erreur lors de la configuration de l\'audio:', error);
       alert('Erreur lors du rechargement de l\'audio. Essayez de réimporter le fichier.');
     }
+  } else if (window.audioFallback) {
+    console.log('Aucun audio dans localStorage, mais audioFallback disponible');
+    try {
+      source.src = window.audioFallback;
+      player.load();
+      console.log('Audio chargé depuis audioFallback');
+      const savedTime = parseFloat(localStorage.getItem('userAudioTime') || 0);
+      console.log('Minutage à restaurer (fallback):', savedTime);
+      player.addEventListener('canplaythrough', () => {
+        player.currentTime = savedTime;
+        console.log('Audio prêt (fallback), minutage appliqué:', player.currentTime);
+      }, { once: true });
+    } catch (error) {
+      console.error('Erreur lors de la configuration de l\'audio (fallback):', error);
+    }
   } else {
-    console.log('Aucun audio sauvegardé dans localStorage');
+    console.log('Aucun audio sauvegardé dans localStorage ou audioFallback');
   }
 
   // Mettre à jour le minutage en temps réel
   player.addEventListener('timeupdate', () => {
     localStorage.setItem('userAudioTime', player.currentTime);
-    console.log('Minutage mis à jour:', player.currentTime);
   });
 
   // Gérer l'importation d'un nouveau fichier audio
@@ -1947,9 +1964,9 @@ function setupAudioPlayer() {
     }
 
     console.log('Importation d\'un nouveau fichier:', file.name, 'Taille (octets):', file.size);
-    // Vérifier la taille du fichier (limite approximative de 5 Mo pour localStorage)
-    if (file.size > 5 * 1024 * 1024) {
-      alert('Le fichier est trop volumineux (> 5 Mo). Veuillez utiliser un fichier plus petit.');
+    // Vérifier la taille du fichier (limite de 3 Mo pour éviter les problèmes)
+    if (file.size > 3 * 1024 * 1024) {
+      alert('Le fichier est trop volumineux (> 3 Mo). Veuillez utiliser un fichier plus petit.');
       return;
     }
 
@@ -1961,9 +1978,10 @@ function setupAudioPlayer() {
         source.src = audioData;
         player.load();
         localStorage.setItem('userAudioBase64', audioData);
+        window.audioFallback = audioData; // Sauvegarde temporaire
         localStorage.setItem('userAudioTime', '0');
-        console.log('Nouveau fichier audio sauvegardé dans localStorage');
-        player.addEventListener('canplay', () => {
+        console.log('Nouveau fichier audio sauvegardé dans localStorage et audioFallback');
+        player.addEventListener('canplaythrough', () => {
           player.currentTime = 0;
           console.log('Nouveau fichier audio prêt, minutage réinitialisé');
         }, { once: true });
