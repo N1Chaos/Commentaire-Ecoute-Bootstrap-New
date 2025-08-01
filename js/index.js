@@ -1963,57 +1963,59 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Stocker les données des pays
     let countryData = {};
-
-    // Charger les données des pays depuis un fichier JSON local
+    const isoCorrections = {
+      'UK': 'GB',
+      'AN': 'NL',
+      'TP': 'TL',
+      '-99': 'FR' // Correction pour la France
+    };
     fetch('data/countries.json')
       .then(response => {
         if (!response.ok) {
-          throw new Error('Erreur lors du chargement des données des pays');
+          throw new Error(`Erreur HTTP ${response.status}: Impossible de charger data/countries.json. Vérifiez que le fichier existe dans le dossier data/`);
         }
         return response.json();
       })
       .then(data => {
-        // Créer un dictionnaire avec ISO_A2 comme clé
+        if (!Array.isArray(data)) {
+          throw new Error('Le fichier countries.json doit contenir une liste d\'objets');
+        }
+        if (data.length > 0 && (!data[0].cca2 || !data[0].flags || !data[0].languages)) {
+          console.warn('Avertissement : Le fichier countries.json peut ne pas avoir la structure attendue (champs cca2, flags, languages manquants)');
+        }
         data.forEach(country => {
           if (country.cca2) {
             countryData[country.cca2] = {
               flag: country.flags?.png || 'N/A',
-              languages: country.languages ? Object.values(country.languages).join(', ') : 'N/A'
+              languages: country.languages && Object.keys(country.languages).length > 0 ? Object.values(country.languages).join(', ') : 'N/A'
             };
           }
         });
+        console.log('Données des pays chargées :', Object.keys(countryData).length, 'pays');
+        console.log('Exemple de données pour FR :', countryData['FR']);
       })
       .catch(error => {
         console.error('Erreur lors du chargement des données des pays :', error);
-        alert('Impossible de charger les données des pays (drapeaux et langues). Certaines informations peuvent être manquantes.');
+        alert('Impossible de charger les données des pays (drapeaux et langues). Les informations de base (nom, capitale, population) seront affichées.');
       });
-
-    // Initialiser la carte lorsque la modale s'ouvre
     var map = null;
     var geojsonLayer = null;
     var carteMondeModal = document.getElementById('carteMondeModal');
-
     carteMondeModal.addEventListener('shown.bs.modal', function () {
       if (map === null) {
-        // Initialiser la carte avec Leaflet
         map = L.map('map').setView([0, 0], 2);
-
-        // Ajouter les tuiles OpenStreetMap
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
           maxZoom: 18
         }).addTo(map);
-
-        // Charger les données GeoJSON des pays
         fetch('https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson')
           .then(response => {
             if (!response.ok) {
-              throw new Error('Erreur lors du chargement du fichier GeoJSON');
+              throw new Error(`Erreur HTTP ${response.status}: Impossible de charger le GeoJSON`);
             }
             return response.json();
           })
           .then(data => {
-            // Ajouter la couche GeoJSON
             geojsonLayer = L.geoJSON(data, {
               style: {
                 color: '#3388ff',
@@ -2022,15 +2024,24 @@ document.addEventListener("DOMContentLoaded", () => {
                 fillOpacity: 0.2
               },
               onEachFeature: function (feature, layer) {
-                // Récupérer les données du pays
                 const isoCode = feature.properties.ISO_A2 || 'N/A';
-                const countryInfo = countryData[isoCode] || {};
+                const correctedIso = isoCorrections[isoCode] || isoCode;
+                const countryInfo = countryData[correctedIso] || {};
                 const flagUrl = countryInfo.flag || 'N/A';
                 const languages = countryInfo.languages || 'N/A';
                 const capital = feature.properties.CAPITAL || 'N/A';
                 const population = feature.properties.POP_EST ? feature.properties.POP_EST.toLocaleString('fr-FR') : 'N/A';
-
-                // Créer le contenu de la popup
+                // Journal de débogage pour la France
+                if (feature.properties.ADMIN === 'France') {
+                  console.log('Données GeoJSON pour la France :', {
+                    ISO_A2: feature.properties.ISO_A2,
+                    ADMIN: feature.properties.ADMIN,
+                    CAPITAL: feature.properties.CAPITAL,
+                    POP_EST: feature.properties.POP_EST,
+                    CorrectedISO: correctedIso,
+                    CountryData: countryInfo
+                  });
+                }
                 let popupContent = `<b>Pays :</b> ${feature.properties.ADMIN}<br>`;
                 popupContent += `<b>Code ISO :</b> ${isoCode}<br>`;
                 popupContent += `<b>Capitale :</b> ${capital}<br>`;
@@ -2041,11 +2052,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 } else {
                   popupContent += `<b>Drapeau :</b> Non disponible<br>`;
                 }
-
-                // Attacher la popup
                 layer.bindPopup(popupContent);
-
-                // Événements de clic et survol
                 layer.on({
                   click: function (e) {
                     map.fitBounds(e.target.getBounds());
@@ -2068,12 +2075,9 @@ document.addEventListener("DOMContentLoaded", () => {
             alert('Impossible de charger les données des pays. Vérifiez votre connexion ou l\'URL du GeoJSON.');
           });
       } else {
-        // Rafraîchir la carte si elle existe déjà
         map.invalidateSize();
       }
     });
-
-    // Réinitialiser la carte lors de la fermeture de la modale
     carteMondeModal.addEventListener('hidden.bs.modal', function () {
       if (map !== null) {
         map.remove();
