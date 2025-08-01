@@ -2024,6 +2024,8 @@ async function setupAudioRecorder() {
     const recorder = new MediaRecorder(stream);
     const recordButton = document.getElementById('recordButton');
     const recordingIndicator = document.getElementById('recordingIndicator');
+    let recordingSeconds = 0;
+    let timerInterval = null;
 
     recorder.ondataavailable = e => audioChunks.push(e.data);
     recorder.onstop = () => {
@@ -2031,11 +2033,13 @@ async function setupAudioRecorder() {
       const audioUrl = URL.createObjectURL(audioBlob);
       document.getElementById('audioPlayback').src = audioUrl;
       window.audioBlob = audioBlob;
-      // Réinitialiser le bouton et le repère visuel
+      // Réinitialiser le bouton, le repère visuel et le compteur
       recordButton.classList.remove('btn-warning');
       recordButton.classList.add('btn-danger');
       recordButton.innerHTML = '<i class="bi bi-mic-fill"></i> Enregistrer votre commentaire';
       recordingIndicator.style.display = 'none';
+      clearInterval(timerInterval);
+      recordingSeconds = 0;
       console.log('Enregistrement arrêté');
     };
 
@@ -2047,8 +2051,14 @@ async function setupAudioRecorder() {
         recordButton.classList.remove('btn-danger');
         recordButton.classList.add('btn-warning');
         recordButton.innerHTML = '<i class="bi bi-stop-fill"></i> Arrêter l\'enregistrement';
-        // Afficher le repère visuel
+        // Afficher le repère visuel avec compteur
         recordingIndicator.style.display = 'inline';
+        recordingSeconds = 0;
+        recordingIndicator.textContent = `Enregistrement en cours... (0 s)`;
+        timerInterval = setInterval(() => {
+          recordingSeconds++;
+          recordingIndicator.textContent = `Enregistrement en cours... (${recordingSeconds} s)`;
+        }, 1000);
         console.log('Enregistrement démarré');
       } else {
         recorder.stop();
