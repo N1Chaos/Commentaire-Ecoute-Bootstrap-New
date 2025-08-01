@@ -335,3 +335,14 @@ textarea {
 .bs-tooltip-auto, .bs-tooltip-top {
   pointer-events: none !important;
 }
+
+.leaflet-popup-content {
+  font-family: 'Poppins', sans-serif;
+  line-height: 1.5;
+  padding: 10px;
+}
+.leaflet-popup-content img {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-top: 5px;
+}
