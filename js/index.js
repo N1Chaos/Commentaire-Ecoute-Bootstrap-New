@@ -2024,6 +2024,7 @@ async function setupAudioRecorder() {
     const recorder = new MediaRecorder(stream);
     const recordButton = document.getElementById('recordButton');
     const recordingIndicator = document.getElementById('recordingIndicator');
+    const recordingConfirmation = document.getElementById('recordingConfirmation');
     let recordingSeconds = 0;
     let timerInterval = null;
 
@@ -2040,7 +2041,12 @@ async function setupAudioRecorder() {
       recordingIndicator.style.display = 'none';
       clearInterval(timerInterval);
       recordingSeconds = 0;
-      console.log('Enregistrement arrêté');
+      // Afficher le message de confirmation
+      recordingConfirmation.style.display = 'inline';
+      setTimeout(() => {
+        recordingConfirmation.style.display = 'none';
+      }, 10000); // Masquer après 10 secondes
+      console.log('Enregistrement arrêté, commentaire enregistré');
     };
 
     recordButton.onclick = () => {
@@ -2059,6 +2065,8 @@ async function setupAudioRecorder() {
           recordingSeconds++;
           recordingIndicator.textContent = `Enregistrement en cours... (${recordingSeconds} s)`;
         }, 1000);
+        // S'assurer que le message de confirmation est caché
+        recordingConfirmation.style.display = 'none';
         console.log('Enregistrement démarré');
       } else {
         recorder.stop();
