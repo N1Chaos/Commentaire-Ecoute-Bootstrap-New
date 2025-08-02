@@ -1812,7 +1812,7 @@ const wordDefinitions =
     }
 };
 
-// ==================== GESTION DES MOTS ====================
+// ==================== GESTION DES MOTS SÉLECTIONNÉS ====================
 function displayWordsForPage(page) {
   const container = document.querySelector(`.selected-words-container[data-page="${page}"]`);
   if (!container) return;
@@ -1830,6 +1830,7 @@ function displayWordsForPage(page) {
   container.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
     new bootstrap.Tooltip(el, { trigger: 'hover' });
   });
+  console.log(`Mots affichés pour ${page}:`, words);
 }
 
 function deleteWordFromPage(page, word) {
@@ -1843,11 +1844,34 @@ function deleteWordFromPage(page, word) {
       }
     });
 
-    const words = loadFromLocalStorage(`selectedWords_${page}`);
-    saveToLocalStorage(`selectedWords_${page}`, words.filter(w => w !== word));
+    // Mettre à jour la liste des mots pour la page
+    const pageWords = loadFromLocalStorage(`selectedWords_${page}`);
+    saveToLocalStorage(`selectedWords_${page}`, pageWords.filter(w => w !== word));
+
+    // Mettre à jour la liste globale des mots sélectionnés
+    const selectedWords = loadFromLocalStorage('selectedWords');
+    saveToLocalStorage('selectedWords', selectedWords.filter(w => w !== word));
+
     displayWordsForPage(page);
+    console.log(`Mot "${word}" supprimé pour ${page}`);
   }
 }
+
+// Mettre à jour les mots affichés lorsqu’un changement est détecté dans localStorage
+function updateWordsOnStorageChange() {
+  const pages = ['page1', 'page2', 'page3', 'page4', 'page5', 'page6', 'page7', 'page8', 'page9', 'page10', 'page11', 'page12', 'page13', 'page14'];
+  pages.forEach(pageName => {
+    displayWordsForPage(pageName);
+  });
+}
+
+// Écouter les changements dans localStorage
+window.addEventListener('storage', (event) => {
+  if (event.key && (event.key === 'selectedWords' || event.key.startsWith('selectedWords_'))) {
+    console.log('Changement détecté dans localStorage:', event.key);
+    updateWordsOnStorageChange();
+  }
+});
 
 // ==================== LECTEUR YOUTUBE ====================
 function extractVideoID(url) {

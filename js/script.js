@@ -1778,6 +1778,7 @@ const wordDefinitions =
         "definition": "Adaptation d'une œuvre musicale pour un instrument ou un ensemble différent."
     }
 };
+
 // Fonction pour gérer la sélection des mots
 const words = document.querySelectorAll('.selectable');
 const definitionContainer = document.getElementById('definition-container');
@@ -1834,10 +1835,33 @@ function restoreSelectedWords() {
     console.log(`Mots restaurés pour ${pageName}:`, savedWords);
 }
 
+// Mettre à jour localStorage avec les mots sélectionnés
+function updateSelectedWords() {
+    const pageName = window.location.pathname.split('/').pop().replace('.html', '');
+    const selectedWordsOnPage = Array.from(document.querySelectorAll('.selected')).map(el => el.textContent);
+    let selectedWords = JSON.parse(localStorage.getItem('selectedWords')) || [];
+    
+    // Supprimer les mots de cette page qui ne sont plus sélectionnés
+    const pageWords = Array.from(words).map(el => el.textContent);
+    selectedWords = selectedWords.filter(word => !pageWords.includes(word) || selectedWordsOnPage.includes(word));
+    
+    // Ajouter les nouveaux mots sélectionnés
+    selectedWordsOnPage.forEach(word => {
+        if (!selectedWords.includes(word)) {
+            selectedWords.push(word);
+        }
+    });
+    
+    localStorage.setItem('selectedWords', JSON.stringify(selectedWords));
+    localStorage.setItem(`selectedWords_${pageName}`, JSON.stringify(selectedWordsOnPage));
+    console.log(`Mots mis à jour pour ${pageName}:`, selectedWordsOnPage);
+}
+
 // Gestion des mots
 words.forEach(word => {
     word.addEventListener('click', () => {
         word.classList.toggle('selected');
+        updateSelectedWords(); // Mettre à jour localStorage à chaque clic
         if (word.classList.contains('selected')) {
             const wordData = wordDefinitions[word.textContent] || { definition: "Aucune définition disponible." };
             definitionTitle.textContent = word.textContent;
@@ -1885,7 +1909,8 @@ function clearSelection() {
         const pageName = window.location.pathname.split('/').pop().replace('.html', '');
         localStorage.setItem(`selectedWords_${pageName}`, JSON.stringify([]));
         let selectedWords = JSON.parse(localStorage.getItem('selectedWords')) || [];
-        selectedWords = selectedWords.filter(word => !wordsArray.includes(word));
+        const pageWords = Array.from(words).map(el => el.textContent);
+        selectedWords = selectedWords.filter(word => !pageWords.includes(word));
         localStorage.setItem('selectedWords', JSON.stringify(selectedWords));
         definitionContainer.style.display = 'none';
         console.log(`Sélections annulées pour ${pageName}`);
@@ -1894,18 +1919,7 @@ function clearSelection() {
 
 function returnWords() {
     const selectedWordsOnPage = Array.from(document.querySelectorAll('.selected')).map(el => el.textContent);
-    if (selectedWordsOnPage.length === 0) {
-        alert("Aucun mot sélectionné !");
-        return;
-    }
-    let selectedWords = JSON.parse(localStorage.getItem('selectedWords')) || [];
-    selectedWordsOnPage.forEach(word => {
-        if (!selectedWords.includes(word)) selectedWords.push(word);
-    });
-    localStorage.setItem('selectedWords', JSON.stringify(selectedWords));
-    const pageName = window.location.pathname.split('/').pop().replace('.html', '');
-    localStorage.setItem(`selectedWords_${pageName}`, JSON.stringify(selectedWordsOnPage));
-    console.log(`Mots validés pour ${pageName}:`, selectedWordsOnPage);
+    console.log(`Retour à la page principale, mots sélectionnés pour ${window.location.pathname.split('/').pop().replace('.html', '')}:`, selectedWordsOnPage);
     window.location.href = "../index.html";
 }
 
