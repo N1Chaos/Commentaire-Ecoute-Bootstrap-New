@@ -1778,7 +1778,6 @@ const wordDefinitions =
         "definition": "Adaptation d'une œuvre musicale pour un instrument ou un ensemble différent."
     }
 };
-
 // Fonction pour gérer la sélection des mots
 const words = document.querySelectorAll('.selectable');
 const definitionContainer = document.getElementById('definition-container');
@@ -1822,6 +1821,18 @@ document.addEventListener('mousemove', (e) => {
 document.addEventListener('mouseup', () => {
     isResizing = false;
 });
+
+// Restaurer les mots sélectionnés au chargement de la page
+function restoreSelectedWords() {
+    const pageName = window.location.pathname.split('/').pop().replace('.html', '');
+    const savedWords = JSON.parse(localStorage.getItem(`selectedWords_${pageName}`)) || [];
+    words.forEach(word => {
+        if (savedWords.includes(word.textContent)) {
+            word.classList.add('selected');
+        }
+    });
+    console.log(`Mots restaurés pour ${pageName}:`, savedWords);
+}
 
 // Gestion des mots
 words.forEach(word => {
@@ -1871,7 +1882,13 @@ words.forEach(word => {
 function clearSelection() {
     if (confirm('Êtes-vous sûr de vouloir annuler toutes vos sélections ?')) {
         words.forEach(word => word.classList.remove('selected'));
+        const pageName = window.location.pathname.split('/').pop().replace('.html', '');
+        localStorage.setItem(`selectedWords_${pageName}`, JSON.stringify([]));
+        let selectedWords = JSON.parse(localStorage.getItem('selectedWords')) || [];
+        selectedWords = selectedWords.filter(word => !wordsArray.includes(word));
+        localStorage.setItem('selectedWords', JSON.stringify(selectedWords));
         definitionContainer.style.display = 'none';
+        console.log(`Sélections annulées pour ${pageName}`);
     }
 }
 
@@ -1888,6 +1905,7 @@ function returnWords() {
     localStorage.setItem('selectedWords', JSON.stringify(selectedWords));
     const pageName = window.location.pathname.split('/').pop().replace('.html', '');
     localStorage.setItem(`selectedWords_${pageName}`, JSON.stringify(selectedWordsOnPage));
+    console.log(`Mots validés pour ${pageName}:`, selectedWordsOnPage);
     window.location.href = "../index.html";
 }
 
@@ -1898,3 +1916,8 @@ function closeDefinition() {
 function goToHomePage() {
     window.location.href = "../index.html";
 }
+
+// Appeler la fonction pour restaurer les mots au chargement
+document.addEventListener('DOMContentLoaded', () => {
+    restoreSelectedWords();
+});
