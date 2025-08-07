@@ -1934,6 +1934,7 @@ function goToHomePage() {
 // Appeler la fonction pour restaurer les mots au chargement
 document.addEventListener('DOMContentLoaded', () => {
     restoreSelectedWords();
+    setupMiniPlayer();
 });
 
 // MODIFICATION: Ajout de la fonction pour le mini-lecteur audio
