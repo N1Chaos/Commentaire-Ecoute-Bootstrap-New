@@ -17,7 +17,7 @@
 </head>
 <body>
 
-  <div class="container py-4">
+  <div class="container py-4" style="padding-bottom: 70px;">
     <h1 class="text-center">TEMPO</h1>
 
     <!-- Première rangée -->
@@ -114,7 +114,19 @@
       </div>
     </div>
   </div>
-
+<!-- Mini-lecteur audio -->
+    <div id="miniPlayer" class="mini-player d-none">
+      <div class="d-flex align-items-center gap-2">
+        <button id="miniPlayPause" class="btn btn-primary btn-sm" aria-label="Lire ou mettre en pause l’audio">
+          <i class="bi bi-play-fill"></i>
+        </button>
+        <input type="range" id="miniSeekBar" min="0" value="0" class="form-range" aria-label="Naviguer dans l’audio">
+        <span id="miniCurrentTime">0:00</span> / <span id="miniDuration">0:00</span>
+      </div>
+      <div id="miniPlayerError" class="text-danger d-none" style="font-size: 0.8em; margin-top: 5px;">
+        Erreur : impossible de charger l’audio. Essayez de recharger sur la page principale.
+      </div>
+    </div>
   <!-- Panneau latéral de définition -->
   <div id="definition-container">
     <span id="close-definition" onclick="closeDefinition()" aria-label="Fermer la définition" title="Fermer la définition">×</span>
