@@ -1937,141 +1937,119 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // MODIFICATION: Ajout de la fonction pour le mini-lecteur audio
-async function setupMiniPlayer() {
-    const miniPlayer = document.getElementById('miniPlayer');
-    const miniPlayPause = document.getElementById('miniPlayPause');
-    const miniSeekBar = document.getElementById('miniSeekBar');
-    const miniCurrentTime = document.getElementById('miniCurrentTime');
-    const miniDuration = document.getElementById('miniDuration');
+function loadAudioFromDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('AudioDB');
+    request.onerror = () => reject('Erreur lors de l’ouverture d’IndexedDB');
+    request.onsuccess = event => {
+      const db = event.target.result;
+      const transaction = db.transaction(['audioStore'], 'readonly');
+      const store = transaction.objectStore('audioStore');
+      const getAudio = store.get('userAudio');
+      getAudio.onsuccess = () => {
+        console.log('Résultat de store.get(userAudio):', getAudio.result); // MODIFICATION: Journal de débogage
+        resolve(getAudio.result);
+      };
+      getAudio.onerror = () => reject('Erreur lors du chargement de userAudio');
+    };
+  });
+}
 
-    if (!miniPlayer || !miniPlayPause || !miniSeekBar || !miniCurrentTime || !miniDuration) {
-        console.error('Éléments du mini-lecteur non trouvés dans le DOM');
-        return;
-    }
+// MODIFICATION: Fonction utilitaire pour formater le temps
+function formatTime(seconds) {
+  const minutes = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+}
 
-    async function openDB() {
-        return new Promise((resolve, reject) => {
-            const request = indexedDB.open('AudioDB', 1);
-            request.onupgradeneeded = (event) => {
-                const db = event.target.result;
-                db.createObjectStore('audioStore', { keyPath: 'id' });
-            };
-            request.onsuccess = (event) => resolve(event.target.result);
-            request.onerror = (event) => reject(event.target.error);
-        });
-    }
+function setupMiniPlayer() {
+  // MODIFICATION: Vérification des éléments DOM
+  const miniPlayer = document.getElementById('miniPlayer');
+  const miniPlayPause = document.getElementById('miniPlayPause');
+  const miniSeekBar = document.getElementById('miniSeekBar');
+  const miniCurrentTime = document.getElementById('miniCurrentTime');
+  const miniDuration = document.getElementById('miniDuration');
+  const miniPlayerError = document.getElementById('miniPlayerError');
 
-    async function loadAudioFromDB() {
-        try {
-            const db = await openDB();
-            const transaction = db.transaction(['audioStore'], 'readonly');
-            const store = transaction.objectStore('audioStore');
-            const request = store.get('userAudio');
-            return new Promise((resolve, reject) => {
-                request.onsuccess = (event) => resolve(event.target.result);
-                request.onerror = (event) => reject(event.target.error);
-            });
-        } catch (error) {
-            console.error('Erreur lors du chargement depuis IndexedDB:', error);
-            return null;
-        }
-    }
+  if (!miniPlayer || !miniPlayPause || !miniSeekBar || !miniCurrentTime || !miniDuration || !miniPlayerError) {
+    console.error('Éléments du mini-lecteur non trouvés dans le DOM:', {
+      miniPlayer: !!miniPlayer,
+      miniPlayPause: !!miniPlayPause,
+      miniSeekBar: !!miniSeekBar,
+      miniCurrentTime: !!miniCurrentTime,
+      miniDuration: !!miniDuration,
+      miniPlayerError: !!miniPlayerError
+    });
+    return;
+  }
 
-    async function saveAudioStateToDB(state) {
-        try {
-            const db = await openDB();
-            const transaction = db.transaction(['audioStore'], 'readwrite');
-            const store = transaction.objectStore('audioStore');
-            await store.put({ id: 'audioState', ...state });
-            console.log('État audio sauvegardé dans IndexedDB:', state);
-        } catch (error) {
-            console.error('Erreur lors de la sauvegarde de l\'état dans IndexedDB:', error);
-        }
-    }
-
-    function formatTime(seconds) {
-        const min = Math.floor(seconds / 60);
-        const sec = Math.floor(seconds % 60);
-        return `${min}:${sec < 10 ? '0' : ''}${sec}`;
-    }
-
-    const audio = new Audio();
-    const savedAudioData = await loadAudioFromDB();
+  loadAudioFromDB().then(savedAudioData => {
+    console.log('Audio trouvé dans IndexedDB pour le mini-lecteur:', savedAudioData); // MODIFICATION: Journal de débogage
     if (savedAudioData && savedAudioData.blob) {
-        console.log('Audio trouvé dans IndexedDB pour le mini-lecteur');
-        try {
-            const audioUrl = URL.createObjectURL(savedAudioData.blob);
-            audio.src = audioUrl;
-            miniPlayer.classList.remove('d-none');
+      try {
+        // MODIFICATION: Création d’un élément audio dynamique
+        const audio = new Audio();
+        audio.src = URL.createObjectURL(savedAudioData.blob);
+        console.log('URL audio créée:', audio.src); // MODIFICATION: Journal de débogage
 
-            const savedState = await loadAudioFromDB();
-            if (savedState && savedState.time) {
-                audio.currentTime = parseFloat(savedState.time || 0);
-                if (savedState.isPlaying) {
-                    audio.play().catch(error => {
-                        console.error('Erreur lors de la lecture automatique:', error);
-                        miniPlayPause.innerHTML = '<i class="bi bi-play-fill"></i>';
-                    });
-                    miniPlayPause.innerHTML = '<i class="bi bi-pause-fill"></i>';
-                } else {
-                    miniPlayPause.innerHTML = '<i class="bi bi-play-fill"></i>';
-                }
-            }
+        // Configuration initiale
+        miniPlayer.classList.remove('d-none');
+        miniPlayerError.classList.add('d-none');
+        miniSeekBar.value = savedAudioData.time || 0;
+        miniCurrentTime.textContent = formatTime(savedAudioData.time || 0);
 
-            audio.addEventListener('loadedmetadata', () => {
-                miniDuration.textContent = formatTime(audio.duration);
-                miniSeekBar.max = audio.duration;
+        audio.addEventListener('loadedmetadata', () => {
+          console.log('Métadonnées chargées:', audio.duration); // MODIFICATION: Journal de débogage
+          miniSeekBar.max = audio.duration;
+          miniDuration.textContent = formatTime(audio.duration);
+        });
+
+        audio.addEventListener('timeupdate', () => {
+          miniSeekBar.value = audio.currentTime;
+          miniCurrentTime.textContent = formatTime(audio.currentTime);
+        });
+
+        miniSeekBar.addEventListener('input', () => {
+          audio.currentTime = miniSeekBar.value;
+        });
+
+        miniPlayPause.addEventListener('click', () => {
+          if (audio.paused) {
+            audio.play().catch(err => {
+              console.error('Erreur lors de la lecture:', err); // MODIFICATION: Journal d’erreur
+              miniPlayerError.textContent = 'Erreur : lecture bloquée. Cliquez à nouveau.';
+              miniPlayerError.classList.remove('d-none');
             });
+            miniPlayPause.innerHTML = '<i class="bi bi-pause-fill"></i>';
+          } else {
+            audio.pause();
+            miniPlayPause.innerHTML = '<i class="bi bi-play-fill"></i>';
+          }
+        });
 
-            audio.addEventListener('timeupdate', () => {
-                miniCurrentTime.textContent = formatTime(audio.currentTime);
-                miniSeekBar.value = audio.currentTime;
-                saveAudioStateToDB({
-                    time: audio.currentTime,
-                    isPlaying: !audio.paused
-                });
-            });
-
-            miniPlayPause.addEventListener('click', () => {
-                if (audio.paused) {
-                    audio.play().catch(error => {
-                        console.error('Erreur lors de la lecture:', error);
-                    });
-                    miniPlayPause.innerHTML = '<i class="bi bi-pause-fill"></i>';
-                } else {
-                    audio.pause();
-                    miniPlayPause.innerHTML = '<i class="bi bi-play-fill"></i>';
-                }
-                saveAudioStateToDB({
-                    time: audio.currentTime,
-                    isPlaying: !audio.paused
-                });
-            });
-
-            miniSeekBar.addEventListener('input', () => {
-                audio.currentTime = miniSeekBar.value;
-                saveAudioStateToDB({
-                    time: audio.currentTime,
-                    isPlaying: !audio.paused
-                });
-            });
-
-            audio.addEventListener('ended', () => {
-                miniPlayPause.innerHTML = '<i class="bi bi-play-fill"></i>';
-                audio.currentTime = 0;
-                miniCurrentTime.textContent = '0:00';
-                miniSeekBar.value = 0;
-                saveAudioStateToDB({
-                    time: 0,
-                    isPlaying: false
-                });
-            });
-        } catch (error) {
-            console.error('Erreur lors de la configuration du mini-lecteur:', error);
-            miniPlayer.classList.add('d-none');
+        // MODIFICATION: Lecture automatique si isPlaying est true
+        if (savedAudioData.isPlaying) {
+          audio.play().catch(err => {
+            console.error('Erreur lors de la lecture automatique:', err);
+            miniPlayerError.textContent = 'Erreur : lecture automatique bloquée. Cliquez sur play.';
+            miniPlayerError.classList.remove('d-none');
+          });
+          miniPlayPause.innerHTML = '<i class="bi bi-pause-fill"></i>';
         }
-    } else {
-        console.log('Aucun audio disponible dans IndexedDB pour le mini-lecteur');
+      } catch (err) {
+        console.error('Erreur lors de la configuration du mini-lecteur:', err); // MODIFICATION: Journal d’erreur
         miniPlayer.classList.add('d-none');
+        miniPlayerError.textContent = 'Erreur : impossible de configurer l’audio.';
+        miniPlayerError.classList.remove('d-none');
+      }
+    } else {
+      console.log('Aucun audio disponible dans IndexedDB pour le mini-lecteur');
+      miniPlayer.classList.add('d-none');
+      miniPlayerError.classList.remove('d-none');
     }
+  }).catch(err => {
+    console.error('Erreur lors du chargement depuis IndexedDB:', err); // MODIFICATION: Journal d’erreur
+    miniPlayer.classList.add('d-none');
+    miniPlayerError.classList.remove('d-none');
+  });
 }
