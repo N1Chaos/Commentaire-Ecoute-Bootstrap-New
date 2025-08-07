@@ -1944,6 +1944,19 @@ async function saveAudioToDB(blob, time) {
   }
 }
 
+// MODIFICATION: Fonction pour sauvegarder l’état audio (utilisée par le mini-lecteur)
+async function saveAudioStateToDB(state) {
+  try {
+    const db = await openDB();
+    const transaction = db.transaction(['audioStore'], 'readwrite');
+    const store = transaction.objectStore('audioStore');
+    await store.put({ id: 'audioState', ...state });
+    console.log('État audio sauvegardé dans IndexedDB:', state);
+  } catch (error) {
+    console.error('Erreur lors de la sauvegarde de l\'état dans IndexedDB:', error);
+  }
+}
+
 async function loadAudioFromDB() {
   try {
     const db = await openDB();
@@ -1956,6 +1969,23 @@ async function loadAudioFromDB() {
     });
   } catch (error) {
     console.error('Erreur lors du chargement depuis IndexedDB:', error);
+    return null;
+  }
+}
+
+// MODIFICATION: Fonction pour charger l’état audio (utilisée par le mini-lecteur)
+async function loadAudioStateFromDB() {
+  try {
+    const db = await openDB();
+    const transaction = db.transaction(['audioStore'], 'readonly');
+    const store = transaction.objectStore('audioStore');
+    const request = store.get('audioState');
+    return new Promise((resolve, reject) => {
+      request.onsuccess = (event) => resolve(event.target.result);
+      request.onerror = (event) => reject(event.target.error);
+    });
+  } catch (error) {
+    console.error('Erreur lors du chargement de l\'état depuis IndexedDB:', error);
     return null;
   }
 }
@@ -1997,6 +2027,35 @@ async function setupAudioPlayer() {
   } else {
     console.log('Aucun audio sauvegardé dans IndexedDB');
   }
+
+// MODIFICATION: Sauvegarde de l’état audio lors des événements
+  player.addEventListener('timeupdate', async () => {
+    await saveAudioStateToDB({
+      time: player.currentTime,
+      isPlaying: !player.paused
+    });
+  });
+
+  player.addEventListener('play', async () => {
+    await saveAudioStateToDB({
+      time: player.currentTime,
+      isPlaying: true
+    });
+  });
+
+  player.addEventListener('pause', async () => {
+    await saveAudioStateToDB({
+      time: player.currentTime,
+      isPlaying: false
+    });
+  });
+
+  player.addEventListener('ended', async () => {
+    await saveAudioStateToDB({
+      time: 0,
+      isPlaying: false
+    });
+  });
 
   // Mettre à jour le minutage en temps réel
   player.addEventListener('timeupdate', async () => {

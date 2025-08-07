@@ -20,6 +20,16 @@
 
   <div class="container py-4">
     <h1 class="text-center">STYLES</h1>
+     <!-- Mini-lecteur audio -->
+    <div id="miniPlayer" class="mini-player d-none">
+      <div class="d-flex align-items-center gap-2">
+        <button id="miniPlayPause" class="btn btn-primary btn-sm" aria-label="Lire ou mettre en pause l’audio">
+          <i class="bi bi-play-fill"></i>
+        </button>
+        <input type="range" id="miniSeekBar" min="0" value="0" class="form-range" aria-label="Naviguer dans l’audio">
+        <span id="miniCurrentTime">0:00</span> / <span id="miniDuration">0:00</span>
+      </div>
+    </div>
 
     <!-- Images -->
     <div class="text-center mb-4">
