@@ -1830,9 +1830,13 @@ function restoreSelectedWords() {
     words.forEach(word => {
         if (savedWords.includes(word.textContent)) {
             // Positionner le conteneur de définitions
+// Positionner le conteneur de définitions
 const isMobile = window.matchMedia("(max-width: 767px)").matches;
 if (isMobile) {
-    const wordRect = word.getBoundingClientRect();
+    // Supprimer le conteneur de son emplacement actuel s'il est déjà dans le DOM
+    if (definitionContainer.parentElement !== document.body) {
+        definitionContainer.parentElement.removeChild(definitionContainer);
+    }
     definitionContainer.style.position = 'relative';
     definitionContainer.style.left = '0';
     definitionContainer.style.top = '0';
