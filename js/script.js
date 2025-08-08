@@ -1829,28 +1829,7 @@ function restoreSelectedWords() {
     const savedWords = JSON.parse(localStorage.getItem(`selectedWords_${pageName}`)) || [];
     words.forEach(word => {
         if (savedWords.includes(word.textContent)) {
-            // Positionner le conteneur de définitions
-// Positionner le conteneur de définitions
-const isMobile = window.matchMedia("(max-width: 767px)").matches;
-// Toujours retirer le conteneur du DOM avant de le repositionner
-if (definitionContainer.parentElement) {
-    definitionContainer.parentElement.removeChild(definitionContainer);
-}
-if (isMobile) {
-    definitionContainer.style.position = 'relative';
-    definitionContainer.style.left = '';
-    definitionContainer.style.top = '';
-    definitionContainer.style.width = '100%';
-    definitionContainer.style.maxWidth = '';
-    word.insertAdjacentElement('afterend', definitionContainer); // Insérer directement après le mot
-} else {
-    definitionContainer.style.position = 'fixed';
-    definitionContainer.style.right = '20px';
-    definitionContainer.style.top = '20px';
-    definitionContainer.style.width = '300px';
-    definitionContainer.style.maxWidth = '600px';
-    document.body.appendChild(definitionContainer); // Remettre à la fin du body pour laptop
-}
+            word.classList.add('selected');
         }
     });
     console.log(`Mots restaurés pour ${pageName}:`, savedWords);
@@ -1921,6 +1900,27 @@ words.forEach(word => {
         } else {
             definitionContainer.style.display = 'none';
         }
+        // Positionner le conteneur de définitions
+const isMobile = window.matchMedia("(max-width: 767px)").matches;
+if (isMobile) {
+    // Supprimer le conteneur de son emplacement actuel s'il est déjà dans le DOM
+    if (definitionContainer.parentElement !== document.body) {
+        definitionContainer.parentElement.removeChild(definitionContainer);
+    }
+    definitionContainer.style.position = 'relative';
+    definitionContainer.style.left = '0';
+    definitionContainer.style.top = '0';
+    definitionContainer.style.width = '100%';
+    definitionContainer.style.maxWidth = 'none';
+    word.parentElement.insertAdjacentElement('afterend', definitionContainer);
+} else {
+    definitionContainer.style.position = 'fixed';
+    definitionContainer.style.right = '20px';
+    definitionContainer.style.top = '20px';
+    definitionContainer.style.width = '300px';
+    definitionContainer.style.maxWidth = '600px';
+    document.body.appendChild(definitionContainer); // Remettre à la fin du body pour laptop
+}
     });
 });
 
