@@ -2003,6 +2003,7 @@ async function setupAudioPlayer() {
 
   // Recharger l'audio sauvegardé si disponible
   const savedAudioData = await loadAudioFromDB();
+  const savedAudioState = await loadAudioStateFromDB(); // Charger l'état audio le plus récent
   if (savedAudioData && savedAudioData.blob) {
     console.log('Audio trouvé dans IndexedDB');
     try {
@@ -2010,12 +2011,23 @@ async function setupAudioPlayer() {
       source.src = audioUrl;
       player.load();
       console.log('Audio chargé dans le lecteur');
-      const savedTime = parseFloat(savedAudioData.time || 0);
-      console.log('Minutage à restaurer:', savedTime);
+
+      // Utiliser l'état le plus récent de audioState si disponible, sinon userAudio
+      const savedTime = savedAudioState?.time || parseFloat(savedAudioData.time || 0);
+      const isPlaying = savedAudioState?.isPlaying || false;
+      console.log('Minutage à restaurer:', savedTime, 'Lecture:', isPlaying);
+
       player.addEventListener('canplaythrough', () => {
         player.currentTime = savedTime;
         console.log('Audio prêt, minutage appliqué:', player.currentTime);
+        if (isPlaying) {
+          player.play().catch(err => {
+            console.error('Erreur lors de la lecture automatique:', err);
+            alert('Erreur lors de la lecture automatique. Cliquez sur play pour continuer.');
+          });
+        }
       }, { once: true });
+
       player.addEventListener('error', (e) => {
         console.error('Erreur lors du chargement de l\'audio:', e);
         alert('Erreur lors du rechargement du fichier audio. Veuillez réimporter le fichier.');
