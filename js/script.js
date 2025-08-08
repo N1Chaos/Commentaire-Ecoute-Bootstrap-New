@@ -1861,7 +1861,7 @@ function updateSelectedWords() {
 words.forEach(word => {
     word.addEventListener('click', () => {
         word.classList.toggle('selected');
-        updateSelectedWords(); // Mettre à jour localStorage à chaque clic
+        updateSelectedWords();
         if (word.classList.contains('selected')) {
             const wordData = wordDefinitions[word.textContent] || { definition: "Aucune définition disponible." };
             definitionTitle.textContent = word.textContent;
@@ -1931,13 +1931,20 @@ function goToHomePage() {
     window.location.href = "../index.html";
 }
 
-// Appeler la fonction pour restaurer les mots au chargement
-document.addEventListener('DOMContentLoaded', () => {
-    restoreSelectedWords();
-    setupMiniPlayer();
-});
+// Fonction pour ouvrir IndexedDB
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('AudioDB', 1);
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      db.createObjectStore('audioStore', { keyPath: 'id' });
+    };
+    request.onsuccess = (event) => resolve(event.target.result);
+    request.onerror = (event) => reject(event.target.error);
+  });
+}
 
-// MODIFICATION: Ajout de la fonction pour le mini-lecteur audio
+// Fonction pour charger l'audio depuis IndexedDB
 function loadAudioFromDB() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open('AudioDB');
@@ -1948,7 +1955,7 @@ function loadAudioFromDB() {
       const store = transaction.objectStore('audioStore');
       const getAudio = store.get('userAudio');
       getAudio.onsuccess = () => {
-        console.log('Résultat de store.get(userAudio):', getAudio.result); // MODIFICATION: Journal de débogage
+        console.log('Résultat de store.get(userAudio):', getAudio.result);
         resolve(getAudio.result);
       };
       getAudio.onerror = () => reject('Erreur lors du chargement de userAudio');
@@ -1956,7 +1963,37 @@ function loadAudioFromDB() {
   });
 }
 
-// MODIFICATION: Fonction utilitaire pour formater le temps
+// Fonction pour charger l'état audio depuis IndexedDB
+async function loadAudioStateFromDB() {
+  try {
+    const db = await openDB();
+    const transaction = db.transaction(['audioStore'], 'readonly');
+    const store = transaction.objectStore('audioStore');
+    const request = store.get('audioState');
+    return new Promise((resolve, reject) => {
+      request.onsuccess = (event) => resolve(event.target.result);
+      request.onerror = (event) => reject(event.target.error);
+    });
+  } catch (error) {
+    console.error('Erreur lors du chargement de l\'état depuis IndexedDB:', error);
+    return null;
+  }
+}
+
+// Fonction pour sauvegarder l'état audio dans IndexedDB
+async function saveAudioStateToDB(state) {
+  try {
+    const db = await openDB();
+    const transaction = db.transaction(['audioStore'], 'readwrite');
+    const store = transaction.objectStore('audioStore');
+    await store.put({ id: 'audioState', ...state });
+    console.log('État audio sauvegardé dans IndexedDB:', state);
+  } catch (error) {
+    console.error('Erreur lors de la sauvegarde de l\'état dans IndexedDB:', error);
+  }
+}
+
+// Fonction utilitaire pour formater le temps
 function formatTime(seconds) {
   const minutes = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
@@ -1964,7 +2001,6 @@ function formatTime(seconds) {
 }
 
 function setupMiniPlayer() {
-  // MODIFICATION: Vérification des éléments DOM
   const miniPlayer = document.getElementById('miniPlayer');
   const miniPlayPause = document.getElementById('miniPlayPause');
   const miniSeekBar = document.getElementById('miniSeekBar');
@@ -1984,23 +2020,41 @@ function setupMiniPlayer() {
     return;
   }
 
+  let audio = null;
+
+  const updatePlayerState = (state) => {
+    if (!audio || !state) return;
+    audio.currentTime = state.time;
+    miniSeekBar.value = state.time;
+    miniCurrentTime.textContent = formatTime(state.time);
+    if (state.isPlaying && audio.paused) {
+      audio.play().catch(err => {
+        console.error('Erreur lecture mini-lecteur:', err);
+        miniPlayerError.textContent = 'Erreur : lecture bloquée. Cliquez sur play.';
+        miniPlayerError.classList.remove('d-none');
+      });
+      miniPlayPause.innerHTML = '<i class="bi bi-pause-fill"></i>';
+    } else if (!state.isPlaying && !audio.paused) {
+      audio.pause();
+      miniPlayPause.innerHTML = '<i class="bi bi-play-fill"></i>';
+    }
+  };
+
   loadAudioFromDB().then(savedAudioData => {
-    console.log('Audio trouvé dans IndexedDB pour le mini-lecteur:', savedAudioData); // MODIFICATION: Journal de débogage
+    console.log('Audio trouvé dans IndexedDB pour le mini-lecteur:', savedAudioData);
     if (savedAudioData && savedAudioData.blob) {
       try {
-        // MODIFICATION: Création d’un élément audio dynamique
-        const audio = new Audio();
+        audio = new Audio();
         audio.src = URL.createObjectURL(savedAudioData.blob);
-        console.log('URL audio créée:', audio.src); // MODIFICATION: Journal de débogage
+        console.log('URL audio créée:', audio.src);
 
-        // Configuration initiale
         miniPlayer.classList.remove('d-none');
         miniPlayerError.classList.add('d-none');
         miniSeekBar.value = savedAudioData.time || 0;
         miniCurrentTime.textContent = formatTime(savedAudioData.time || 0);
 
         audio.addEventListener('loadedmetadata', () => {
-          console.log('Métadonnées chargées:', audio.duration); // MODIFICATION: Journal de débogage
+          console.log('Métadonnées chargées:', audio.duration);
           miniSeekBar.max = audio.duration;
           miniDuration.textContent = formatTime(audio.duration);
         });
@@ -2008,16 +2062,22 @@ function setupMiniPlayer() {
         audio.addEventListener('timeupdate', () => {
           miniSeekBar.value = audio.currentTime;
           miniCurrentTime.textContent = formatTime(audio.currentTime);
+          const state = { time: audio.currentTime, isPlaying: !audio.paused, duration: audio.duration };
+          saveAudioStateToDB(state);
+          localStorage.setItem('audioState', JSON.stringify(state));
         });
 
         miniSeekBar.addEventListener('input', () => {
           audio.currentTime = miniSeekBar.value;
+          const state = { time: audio.currentTime, isPlaying: !audio.paused, duration: audio.duration };
+          saveAudioStateToDB(state);
+          localStorage.setItem('audioState', JSON.stringify(state));
         });
 
         miniPlayPause.addEventListener('click', () => {
           if (audio.paused) {
             audio.play().catch(err => {
-              console.error('Erreur lors de la lecture:', err); // MODIFICATION: Journal d’erreur
+              console.error('Erreur lors de la lecture:', err);
               miniPlayerError.textContent = 'Erreur : lecture bloquée. Cliquez à nouveau.';
               miniPlayerError.classList.remove('d-none');
             });
@@ -2026,19 +2086,28 @@ function setupMiniPlayer() {
             audio.pause();
             miniPlayPause.innerHTML = '<i class="bi bi-play-fill"></i>';
           }
+          const state = { time: audio.currentTime, isPlaying: !audio.paused, duration: audio.duration };
+          saveAudioStateToDB(state);
+          localStorage.setItem('audioState', JSON.stringify(state));
         });
 
-        // MODIFICATION: Lecture automatique si isPlaying est true
-        if (savedAudioData.isPlaying) {
-          audio.play().catch(err => {
-            console.error('Erreur lors de la lecture automatique:', err);
-            miniPlayerError.textContent = 'Erreur : lecture automatique bloquée. Cliquez sur play.';
-            miniPlayerError.classList.remove('d-none');
-          });
-          miniPlayPause.innerHTML = '<i class="bi bi-pause-fill"></i>';
-        }
+        // Charger l'état initial
+        loadAudioStateFromDB().then(state => {
+          if (state) {
+            updatePlayerState(state);
+          }
+        });
+
+        // Écouter les changements d'état via localStorage
+        window.addEventListener('storage', (event) => {
+          if (event.key === 'audioState') {
+            const state = JSON.parse(event.newValue);
+            updatePlayerState(state);
+          }
+        });
+
       } catch (err) {
-        console.error('Erreur lors de la configuration du mini-lecteur:', err); // MODIFICATION: Journal d’erreur
+        console.error('Erreur lors de la configuration du mini-lecteur:', err);
         miniPlayer.classList.add('d-none');
         miniPlayerError.textContent = 'Erreur : impossible de configurer l’audio.';
         miniPlayerError.classList.remove('d-none');
@@ -2049,8 +2118,14 @@ function setupMiniPlayer() {
       miniPlayerError.classList.remove('d-none');
     }
   }).catch(err => {
-    console.error('Erreur lors du chargement depuis IndexedDB:', err); // MODIFICATION: Journal d’erreur
+    console.error('Erreur lors du chargement depuis IndexedDB:', err);
     miniPlayer.classList.add('d-none');
     miniPlayerError.classList.remove('d-none');
   });
 }
+
+// Appeler la fonction pour restaurer les mots au chargement
+document.addEventListener('DOMContentLoaded', () => {
+    restoreSelectedWords();
+    setupMiniPlayer();
+});

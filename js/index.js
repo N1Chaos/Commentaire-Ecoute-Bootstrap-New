@@ -2028,40 +2028,40 @@ async function setupAudioPlayer() {
     console.log('Aucun audio sauvegardé dans IndexedDB');
   }
 
-// MODIFICATION: Sauvegarde de l’état audio lors des événements
-  player.addEventListener('timeupdate', async () => {
-    await saveAudioStateToDB({
+  // Mettre à jour l'état audio dans IndexedDB et localStorage
+  const updateAudioState = async () => {
+    const state = {
       time: player.currentTime,
-      isPlaying: !player.paused
-    });
-  });
+      isPlaying: !player.paused,
+      duration: player.duration || 0
+    };
+    await saveAudioStateToDB(state);
+    localStorage.setItem('audioState', JSON.stringify(state)); // Signal via localStorage
+    console.log('État audio mis à jour:', state);
+  };
 
-  player.addEventListener('play', async () => {
-    await saveAudioStateToDB({
-      time: player.currentTime,
-      isPlaying: true
-    });
-  });
-
-  player.addEventListener('pause', async () => {
-    await saveAudioStateToDB({
-      time: player.currentTime,
-      isPlaying: false
-    });
-  });
-
+  // Événements du lecteur audio
+  player.addEventListener('timeupdate', updateAudioState);
+  player.addEventListener('play', updateAudioState);
+  player.addEventListener('pause', updateAudioState);
   player.addEventListener('ended', async () => {
-    await saveAudioStateToDB({
-      time: 0,
-      isPlaying: false
-    });
+    const state = { time: 0, isPlaying: false, duration: player.duration || 0 };
+    await saveAudioStateToDB(state);
+    localStorage.setItem('audioState', JSON.stringify(state));
   });
 
-  // Mettre à jour le minutage en temps réel
-  player.addEventListener('timeupdate', async () => {
-    const savedAudioData = await loadAudioFromDB();
-    if (savedAudioData && savedAudioData.blob) {
-      await saveAudioToDB(savedAudioData.blob, player.currentTime);
+  // Écouter les changements d'état depuis les pages annexes
+  window.addEventListener('storage', (event) => {
+    if (event.key === 'audioState') {
+      const state = JSON.parse(event.newValue);
+      if (state) {
+        player.currentTime = state.time;
+        if (state.isPlaying && player.paused) {
+          player.play().catch(err => console.error('Erreur lecture principale:', err));
+        } else if (!state.isPlaying && !player.paused) {
+          player.pause();
+        }
+      }
     }
   });
 
@@ -2080,11 +2080,11 @@ async function setupAudioPlayer() {
         const audioData = e.target.result;
         source.src = audioData;
         player.load();
-        await saveAudioToDB(file, 0); // Stocker le fichier brut (Blob) et réinitialiser le minutage
+        await saveAudioToDB(file, 0);
         console.log('Nouveau fichier audio sauvegardé dans IndexedDB');
         player.addEventListener('canplaythrough', () => {
           player.currentTime = 0;
-          console.log('Nouveau fichier audio prêt, minutage réinitialisé');
+          updateAudioState();
         }, { once: true });
       } catch (error) {
         console.error('Erreur lors du chargement du nouveau fichier:', error);
@@ -2095,7 +2095,7 @@ async function setupAudioPlayer() {
       console.error('Erreur de lecture du fichier:', e);
       alert('Impossible de lire le fichier audio.');
     };
-    reader.readAsDataURL(file); // Toujours nécessaire pour charger dans le lecteur
+    reader.readAsDataURL(file);
   });
 }
 
