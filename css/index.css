@@ -91,7 +91,6 @@ body {
     border: 5px solid var(--highlight-color);
 }
 .bg-secondary-light {
-    background-color: rgba(255, 76, 76, 0.1); /* #ff4c4c avec 10% d'opacité */
     border: 5px solid var(--secondary-color); /* Même bordure que bg-primary bg-opacity-10 */
 }
 textarea {
@@ -427,4 +426,42 @@ header p {
     header p {
         font-size: 1rem;
     }
+}
+
+.card-title {
+    font-family: var(--heading-font);
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: var(--button-color); /* Gris boutons */
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 1rem;
+    position: relative;
+    padding-bottom: 0.3rem;
+    transition: transform 0.3s ease, color 0.3s ease;
+}
+
+/* Trait de soulignement */
+.card-title::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 40px;
+    height: 3px;
+    background: var(--button-color);
+    border-radius: 2px;
+    transition: width 0.3s ease, background 0.3s ease;
+}
+
+.card-title:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(to bottom, var(--button-color), #5f6b61); /* Gris bouton → gris foncé */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.card-title:hover::after {
+    width: 100%;
+    background: linear-gradient(to right, var(--button-color), #5f6b61); /* Gris bouton → gris foncé */
 }
