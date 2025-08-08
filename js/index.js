@@ -2113,46 +2113,50 @@ async function setupAudioPlayer() {
 
 // ==================== ENREGISTREMENT AUDIO ====================
 async function setupAudioRecorder() {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    let audioChunks = [];
-    const recorder = new MediaRecorder(stream);
-    const recordButton = document.getElementById('recordButton');
-    const recordingIndicator = document.getElementById('recordingIndicator');
-    const recordingConfirmation = document.getElementById('recordingConfirmation');
-    let recordingSeconds = 0;
-    let timerInterval = null;
+  const recordButton = document.getElementById('recordButton');
+  const recordingIndicator = document.getElementById('recordingIndicator');
+  const recordingConfirmation = document.getElementById('recordingConfirmation');
+  let audioChunks = [];
+  let recorder = null;
+  let recordingSeconds = 0;
+  let timerInterval = null;
 
-    recorder.ondataavailable = e => audioChunks.push(e.data);
-    recorder.onstop = () => {
-      const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-      const audioUrl = URL.createObjectURL(audioBlob);
-      document.getElementById('audioPlayback').src = audioUrl;
-      window.audioBlob = audioBlob;
-      // Réinitialiser le bouton, le repère visuel et le compteur
-      recordButton.classList.remove('btn-warning');
-      recordButton.classList.add('btn-danger');
-      recordButton.innerHTML = '<i class="bi bi-mic-fill"></i> Enregistrer votre commentaire';
-      recordingIndicator.style.display = 'none';
-      clearInterval(timerInterval);
-      recordingSeconds = 0;
-      // Afficher le message de confirmation
-      recordingConfirmation.style.display = 'inline';
-      setTimeout(() => {
-        recordingConfirmation.style.display = 'none';
-      }, 10000); // Masquer après 10 secondes
-      console.log('Enregistrement arrêté, commentaire enregistré');
-    };
+  if (!recordButton || !recordingIndicator || !recordingConfirmation) {
+    console.error('Éléments d’enregistrement non trouvés dans le DOM');
+    return;
+  }
 
-    recordButton.onclick = () => {
-      if (recorder.state === 'inactive') {
+  recordButton.onclick = async () => {
+    if (!recorder || recorder.state === 'inactive') {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        recorder = new MediaRecorder(stream);
         audioChunks = [];
+
+        recorder.ondataavailable = e => audioChunks.push(e.data);
+        recorder.onstop = () => {
+          const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+          const audioUrl = URL.createObjectURL(audioBlob);
+          document.getElementById('audioPlayback').src = audioUrl;
+          window.audioBlob = audioBlob;
+          recordButton.classList.remove('btn-warning');
+          recordButton.classList.add('btn-danger');
+          recordButton.innerHTML = '<i class="bi bi-mic-fill"></i> Enregistrer votre commentaire';
+          recordingIndicator.style.display = 'none';
+          clearInterval(timerInterval);
+          recordingSeconds = 0;
+          recordingConfirmation.style.display = 'inline';
+          setTimeout(() => {
+            recordingConfirmation.style.display = 'none';
+          }, 10000);
+          console.log('Enregistrement arrêté, commentaire enregistré');
+          stream.getTracks().forEach(track => track.stop());
+        };
+
         recorder.start();
-        // Changer le style et le texte du bouton
         recordButton.classList.remove('btn-danger');
         recordButton.classList.add('btn-warning');
         recordButton.innerHTML = '<i class="bi bi-stop-fill"></i> Arrêter l\'enregistrement';
-        // Afficher le repère visuel avec compteur
         recordingIndicator.style.display = 'inline';
         recordingSeconds = 0;
         recordingIndicator.textContent = `Enregistrement en cours... (0 s)`;
@@ -2160,17 +2164,16 @@ async function setupAudioRecorder() {
           recordingSeconds++;
           recordingIndicator.textContent = `Enregistrement en cours... (${recordingSeconds} s)`;
         }, 1000);
-        // S'assurer que le message de confirmation est caché
         recordingConfirmation.style.display = 'none';
         console.log('Enregistrement démarré');
-      } else {
-        recorder.stop();
+      } catch (error) {
+        console.error('Erreur microphone:', error);
+        // Pas d'alerte, comme demandé
       }
-    };
-  } catch (error) {
-    console.error('Erreur microphone:', error);
-    alert('Impossible d\'accéder au microphone. Vérifiez les autorisations.');
-  }
+    } else {
+      recorder.stop();
+    }
+  };
 }
 
 // ==================== INITIALISATION ====================
