@@ -1832,17 +1832,17 @@ function restoreSelectedWords() {
             // Positionner le conteneur de définitions
 // Positionner le conteneur de définitions
 const isMobile = window.matchMedia("(max-width: 767px)").matches;
-// Réinitialiser le conteneur en le retirant du DOM
+// Toujours retirer le conteneur du DOM avant de le repositionner
 if (definitionContainer.parentElement) {
     definitionContainer.parentElement.removeChild(definitionContainer);
 }
 if (isMobile) {
     definitionContainer.style.position = 'relative';
-    definitionContainer.style.left = '0';
-    definitionContainer.style.top = '0';
+    definitionContainer.style.left = '';
+    definitionContainer.style.top = '';
     definitionContainer.style.width = '100%';
-    definitionContainer.style.maxWidth = 'none';
-    word.parentElement.insertAdjacentElement('afterend', definitionContainer);
+    definitionContainer.style.maxWidth = '';
+    word.insertAdjacentElement('afterend', definitionContainer); // Insérer directement après le mot
 } else {
     definitionContainer.style.position = 'fixed';
     definitionContainer.style.right = '20px';
