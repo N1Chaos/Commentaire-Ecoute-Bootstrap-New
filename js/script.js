@@ -1829,7 +1829,24 @@ function restoreSelectedWords() {
     const savedWords = JSON.parse(localStorage.getItem(`selectedWords_${pageName}`)) || [];
     words.forEach(word => {
         if (savedWords.includes(word.textContent)) {
-            word.classList.add('selected');
+            // Positionner le conteneur de définitions
+const isMobile = window.matchMedia("(max-width: 767px)").matches;
+if (isMobile) {
+    const wordRect = word.getBoundingClientRect();
+    definitionContainer.style.position = 'relative';
+    definitionContainer.style.left = '0';
+    definitionContainer.style.top = '0';
+    definitionContainer.style.width = '100%';
+    definitionContainer.style.maxWidth = 'none';
+    word.parentElement.insertAdjacentElement('afterend', definitionContainer);
+} else {
+    definitionContainer.style.position = 'fixed';
+    definitionContainer.style.right = '20px';
+    definitionContainer.style.top = '20px';
+    definitionContainer.style.width = '300px';
+    definitionContainer.style.maxWidth = '600px';
+    document.body.appendChild(definitionContainer); // Remettre à la fin du body pour laptop
+}
         }
     });
     console.log(`Mots restaurés pour ${pageName}:`, savedWords);

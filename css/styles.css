@@ -178,14 +178,19 @@ h1 {
         font-size: 1.3rem;
     }
     
+    #definition-container {
+        position: relative !important; /* Override position: fixed */
+        width: 100% !important;
+        max-width: none !important;
+        max-height: none;
+        margin: 10px 0;
+        box-shadow: none;
+        border: 1px solid #ddd;
+    }
     .selectable {
+        margin-bottom: 5px;
         font-size: 1rem;
         padding: 0.4rem 0.8rem;
-    }
-    
-    #definition-container {
-        width: 250px;
-        max-height: 60vh;
     }
 }
 
