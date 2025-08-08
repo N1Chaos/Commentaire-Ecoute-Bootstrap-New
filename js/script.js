@@ -1832,11 +1832,11 @@ function restoreSelectedWords() {
             // Positionner le conteneur de définitions
 // Positionner le conteneur de définitions
 const isMobile = window.matchMedia("(max-width: 767px)").matches;
+// Réinitialiser le conteneur en le retirant du DOM
+if (definitionContainer.parentElement) {
+    definitionContainer.parentElement.removeChild(definitionContainer);
+}
 if (isMobile) {
-    // Supprimer le conteneur de son emplacement actuel s'il est déjà dans le DOM
-    if (definitionContainer.parentElement !== document.body) {
-        definitionContainer.parentElement.removeChild(definitionContainer);
-    }
     definitionContainer.style.position = 'relative';
     definitionContainer.style.left = '0';
     definitionContainer.style.top = '0';
