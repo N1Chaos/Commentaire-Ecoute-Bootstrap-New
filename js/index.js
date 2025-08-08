@@ -2826,3 +2826,4 @@ carteMondeModal.addEventListener('hidden.bs.modal', function () {
     geojsonLayer = null;
   }
 });
+
