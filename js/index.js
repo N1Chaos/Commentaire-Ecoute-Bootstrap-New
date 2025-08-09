@@ -2130,16 +2130,18 @@ async function setupAudioRecorder() {
     if (!recorder || recorder.state === 'inactive') {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        // Utiliser un codec plus compatible
-        recorder = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' });
+        // Essayer WAV, sinon WebM
+        const mimeType = MediaRecorder.isTypeSupported('audio/wav') ? 'audio/wav' : 'audio/webm;codecs=opus';
+        recorder = new MediaRecorder(stream, { mimeType });
         audioChunks = [];
 
         recorder.ondataavailable = e => audioChunks.push(e.data);
         recorder.onstop = () => {
-          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          const audioBlob = new Blob(audioChunks, { type: mimeType });
           const audioUrl = URL.createObjectURL(audioBlob);
           document.getElementById('audioPlayback').src = audioUrl;
           window.audioBlob = audioBlob;
+          window.audioMimeType = mimeType; // Stocker le type MIME
           recordButton.classList.remove('btn-warning');
           recordButton.classList.add('btn-danger');
           recordButton.innerHTML = '<i class="bi bi-mic-fill"></i> Enregistrer votre commentaire';
@@ -2166,7 +2168,7 @@ async function setupAudioRecorder() {
           recordingIndicator.textContent = `Enregistrement en cours... (${recordingSeconds} s)`;
         }, 1000);
         recordingConfirmation.style.display = 'none';
-        console.log('Enregistrement démarré');
+        console.log('Enregistrement démarré avec', mimeType);
       } catch (error) {
         console.error('Erreur microphone:', error);
       }
@@ -2222,56 +2224,40 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!window.audioBlob) return alert('Aucun enregistrement disponible');
 
     const fileName = document.getElementById('fileName').value || 'enregistrement';
+    const inputType = window.audioMimeType || 'audio/webm';
     
     try {
-      // Vérifier si AudioContext est dans un état suspendu
-      const audioContext = new AudioContext();
-      if (audioContext.state === 'suspended') {
-        await audioContext.resume();
-      }
+      // Initialiser FFmpeg
+      const { createFFmpeg, fetchFile } = FFmpeg;
+      const ffmpeg = createFFmpeg({ log: true });
+      await ffmpeg.load();
+
+      // Lire le Blob
       const arrayBuffer = await window.audioBlob.arrayBuffer();
-      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+      const inputName = inputType.includes('wav') ? 'input.wav' : 'input.webm';
+      ffmpeg.FS('writeFile', inputName, await fetchFile(window.audioBlob));
 
-      const channels = audioBuffer.numberOfChannels;
-      const sampleRate = audioBuffer.sampleRate;
-      const length = audioBuffer.length;
-      const channelData = [];
-      for (let i = 0; i < channels; i++) {
-        channelData.push(audioBuffer.getChannelData(i));
-      }
+      // Convertir en MP3
+      await ffmpeg.run('-i', inputName, '-c:a', 'mp3', '-b:a', '128k', 'output.mp3');
+      const mp3Data = ffmpeg.FS('readFile', 'output.mp3');
+      const mp3Blob = new Blob([mp3Data.buffer], { type: 'audio/mp3' });
 
-      const mp3Encoder = new lamejs.Mp3Encoder(channels, sampleRate, 128);
-      const mp3Data = [];
-      const sampleBlockSize = 1152;
-
-      for (let i = 0; i < length; i += sampleBlockSize) {
-        const left = channelData[0].slice(i, i + sampleBlockSize);
-        const right = channels > 1 ? channelData[1].slice(i, i + sampleBlockSize) : left;
-        const leftInt = Int16Array.from(left, x => Math.max(-32768, Math.min(32767, x * 32767)));
-        const rightInt = Int16Array.from(right, x => Math.max(-32768, Math.min(32767, x * 32767)));
-        const mp3buf = mp3Encoder.encodeBuffer(leftInt, rightInt);
-        if (mp3buf.length > 0) {
-          mp3Data.push(mp3buf);
-        }
-      }
-
-      const mp3buf = mp3Encoder.flush();
-      if (mp3buf.length > 0) {
-        mp3Data.push(mp3buf);
-      }
-
-      const mp3Blob = new Blob(mp3Data, { type: 'audio/mp3' });
+      // Télécharger
       const link = document.createElement('a');
       link.href = URL.createObjectURL(mp3Blob);
       link.download = `${fileName}.mp3`;
       link.click();
       console.log('Fichier MP3 téléchargé:', `${fileName}.mp3`);
+
+      // Nettoyer
+      ffmpeg.FS('unlink', inputName);
+      ffmpeg.FS('unlink', 'output.mp3');
     } catch (error) {
       console.error('Erreur lors de la conversion en MP3:', error);
-      alert('Erreur lors de la conversion en MP3. Téléchargement en WAV à la place.');
+      alert('Erreur lors de la conversion en MP3. Téléchargement au format original.');
       const link = document.createElement('a');
       link.href = URL.createObjectURL(window.audioBlob);
-      link.download = `${fileName}.webm`;
+      link.download = `${fileName}.${inputType.includes('wav') ? 'wav' : 'webm'}`;
       link.click();
     }
   };
