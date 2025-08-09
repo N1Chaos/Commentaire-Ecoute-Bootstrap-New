@@ -2130,13 +2130,12 @@ async function setupAudioRecorder() {
     if (!recorder || recorder.state === 'inactive') {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        // Utiliser un codec plus compatible
-        recorder = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' });
+        recorder = new MediaRecorder(stream);
         audioChunks = [];
 
         recorder.ondataavailable = e => audioChunks.push(e.data);
         recorder.onstop = () => {
-          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
           const audioUrl = URL.createObjectURL(audioBlob);
           document.getElementById('audioPlayback').src = audioUrl;
           window.audioBlob = audioBlob;
@@ -2169,6 +2168,7 @@ async function setupAudioRecorder() {
         console.log('Enregistrement démarré');
       } catch (error) {
         console.error('Erreur microphone:', error);
+        // Pas d'alerte, comme demandé
       }
     } else {
       recorder.stop();
@@ -2223,15 +2223,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const fileName = document.getElementById('fileName').value || 'enregistrement';
     
+    // Convertir WAV en MP3
     try {
-      // Vérifier si AudioContext est dans un état suspendu
-      const audioContext = new AudioContext();
-      if (audioContext.state === 'suspended') {
-        await audioContext.resume();
-      }
       const arrayBuffer = await window.audioBlob.arrayBuffer();
+      const audioContext = new AudioContext();
       const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
+      // Extraire les données audio (mono ou stéréo)
       const channels = audioBuffer.numberOfChannels;
       const sampleRate = audioBuffer.sampleRate;
       const length = audioBuffer.length;
@@ -2240,26 +2238,33 @@ document.addEventListener("DOMContentLoaded", async () => {
         channelData.push(audioBuffer.getChannelData(i));
       }
 
-      const mp3Encoder = new lamejs.Mp3Encoder(channels, sampleRate, 128);
+      // Initialiser Lamejs
+      const mp3Encoder = new lamejs.Mp3Encoder(channels, sampleRate, 128); // 128 kbps
       const mp3Data = [];
-      const sampleBlockSize = 1152;
+      const sampleBlockSize = 1152; // Taille des blocs pour Lamejs
 
       for (let i = 0; i < length; i += sampleBlockSize) {
         const left = channelData[0].slice(i, i + sampleBlockSize);
         const right = channels > 1 ? channelData[1].slice(i, i + sampleBlockSize) : left;
-        const leftInt = Int16Array.from(left, x => Math.max(-32768, Math.min(32767, x * 32767)));
-        const rightInt = Int16Array.from(right, x => Math.max(-32768, Math.min(32767, x * 32767)));
+
+        // Convertir les échantillons en entiers 16 bits
+        const leftInt = Int16Array.from(left, x => x * 32767);
+        const rightInt = Int16Array.from(right, x => x * 32767);
+
+        // Encoder en MP3
         const mp3buf = mp3Encoder.encodeBuffer(leftInt, rightInt);
         if (mp3buf.length > 0) {
           mp3Data.push(mp3buf);
         }
       }
 
+      // Finaliser l'encodage
       const mp3buf = mp3Encoder.flush();
       if (mp3buf.length > 0) {
         mp3Data.push(mp3buf);
       }
 
+      // Créer le Blob MP3
       const mp3Blob = new Blob(mp3Data, { type: 'audio/mp3' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(mp3Blob);
@@ -2271,7 +2276,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       alert('Erreur lors de la conversion en MP3. Téléchargement en WAV à la place.');
       const link = document.createElement('a');
       link.href = URL.createObjectURL(window.audioBlob);
-      link.download = `${fileName}.webm`;
+      link.download = `${fileName}.wav`;
       link.click();
     }
   };
