@@ -128,6 +128,18 @@ textarea {
     background-color: #ff3333 !important;
 }
 
+.btn-danger {
+    background-color: #ff3333;
+    border-color: #ff3333;
+    width: auto;
+}
+
+.btn-danger:hover {
+    background-color: #fd3c3c;
+    border-color: #fd3c3c;
+    transform: translateY(-2px);
+}
+
 /* Section audio */
 #recordButton {
     background-color: #ff9800;
@@ -242,12 +254,23 @@ textarea {
 
 /* Dans votre fichier css/index.css */
 .selected-words-container {
-    min-height: 30px;
-    padding: 5px;
-    margin-top: 5px;
-    border-radius: 4px;
-    background-color: #f8f9fa;
-    font-size: 0.9em;
+  min-height: 30px;
+  padding: 5px;
+  margin-top: 5px;
+  margin-bottom: 40px; /* Espace pour le bouton en bas */
+  border-radius: 4px;
+  background-color: #f8f9fa;
+  font-size: 0.9em;
+}
+
+.btn-mobile-full {
+  width: auto; /* Largeur auto pour desktop */
+}
+
+@media (max-width: 768px) {
+  .btn-mobile-full {
+    width: 100%; /* Toute la largeur en mode mobile */
+  }
 }
 
 .selected-words-container .badge {

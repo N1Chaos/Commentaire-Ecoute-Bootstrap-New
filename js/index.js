@@ -1867,7 +1867,7 @@ function updateWordsOnStorageChange() {
 
 // Écouter les changements dans localStorage
 window.addEventListener('storage', (event) => {
-  if (event.key && (event.key === 'selectedWords' || event.key.startsWith('selectedWords_'))) {
+  if (event.key && (event.key === 'selectedWords' || event.key.startsWith('selectedWords_') || event.key === 'clearSelectionEvent')) {
     console.log('Changement détecté dans localStorage:', event.key);
     updateWordsOnStorageChange();
   }
@@ -2827,3 +2827,23 @@ carteMondeModal.addEventListener('hidden.bs.modal', function () {
   }
 });
 
+// Fonction pour effacer toutes les sélections et réinitialiser les boutons
+function clearSelection() {
+  if (confirm("Voulez-vous vraiment effacer toutes les sélections ?")) {
+    // Effacer toutes les clés de localStorage pour les mots sélectionnés
+    Object.keys(PAGES).forEach(page => {
+      saveToLocalStorage(`selectedWords_${page}`, []);
+    });
+    saveToLocalStorage('selectedWords', []);
+
+    // Mettre à jour l'affichage des mots pour toutes les pages
+    Object.keys(PAGES).forEach(page => {
+      displayWordsForPage(page);
+    });
+
+    // Déclencher un événement de stockage pour réinitialiser les boutons sur les pages annexes
+    localStorage.setItem('clearSelectionEvent', Date.now().toString());
+
+    console.log('Toutes les sélections ont été effacées');
+  }
+}

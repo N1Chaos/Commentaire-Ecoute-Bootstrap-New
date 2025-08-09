@@ -1924,6 +1924,15 @@ if (isMobile) {
     });
 });
 
+// NOUVEAU: Écouter les événements de réinitialisation
+window.addEventListener('storage', (event) => {
+  if (event.key === 'clearSelectionEvent' || event.key === `selectedWords_${getPageName()}`) {
+    console.log('Événement de réinitialisation détecté:', event.key);
+    restoreSelectedWords();
+    definitionContainer.style.display = 'none'; // Cacher le conteneur de définition
+  }
+});
+
 function clearSelection() {
     if (confirm('Êtes-vous sûr de vouloir annuler toutes vos sélections ?')) {
         words.forEach(word => word.classList.remove('selected'));
