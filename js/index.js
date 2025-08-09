@@ -2130,8 +2130,10 @@ async function setupAudioRecorder() {
     if (!recorder || recorder.state === 'inactive') {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        // Essayer WAV, sinon WebM
-        const mimeType = MediaRecorder.isTypeSupported('audio/wav') ? 'audio/wav' : 'audio/webm;codecs=opus';
+        // Prioriser MP3, puis WAV, puis WebM
+        const mimeType = MediaRecorder.isTypeSupported('audio/mp3') ? 'audio/mp3' :
+                        MediaRecorder.isTypeSupported('audio/wav') ? 'audio/wav' : 'audio/webm;codecs=opus';
+        console.log('MIME type utilisé pour l’enregistrement:', mimeType);
         recorder = new MediaRecorder(stream, { mimeType });
         audioChunks = [];
 
@@ -2141,7 +2143,7 @@ async function setupAudioRecorder() {
           const audioUrl = URL.createObjectURL(audioBlob);
           document.getElementById('audioPlayback').src = audioUrl;
           window.audioBlob = audioBlob;
-          window.audioMimeType = mimeType; // Stocker le type MIME
+          window.audioMimeType = mimeType;
           recordButton.classList.remove('btn-warning');
           recordButton.classList.add('btn-danger');
           recordButton.innerHTML = '<i class="bi bi-mic-fill"></i> Enregistrer votre commentaire';
@@ -2152,7 +2154,7 @@ async function setupAudioRecorder() {
           setTimeout(() => {
             recordingConfirmation.style.display = 'none';
           }, 10000);
-          console.log('Enregistrement arrêté, commentaire enregistré');
+          console.log('Enregistrement arrêté, commentaire enregistré, type:', mimeType);
           stream.getTracks().forEach(track => track.stop());
         };
 
@@ -2225,31 +2227,39 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const fileName = document.getElementById('fileName').value || 'enregistrement';
     const inputType = window.audioMimeType || 'audio/webm';
-    
+
+    // Si déjà en MP3, télécharger directement
+    if (inputType.includes('mp3')) {
+      console.log('Enregistrement déjà en MP3, téléchargement direct');
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(window.audioBlob);
+      link.download = `${fileName}.mp3`;
+      link.click();
+      return;
+    }
+
     try {
-      // Initialiser FFmpeg
+      console.log('Tentative de chargement de FFmpeg');
       const { createFFmpeg, fetchFile } = FFmpeg;
       const ffmpeg = createFFmpeg({ log: true });
       await ffmpeg.load();
+      console.log('FFmpeg chargé avec succès');
 
-      // Lire le Blob
-      const arrayBuffer = await window.audioBlob.arrayBuffer();
       const inputName = inputType.includes('wav') ? 'input.wav' : 'input.webm';
       ffmpeg.FS('writeFile', inputName, await fetchFile(window.audioBlob));
+      console.log('Fichier d’entrée écrit:', inputName);
 
-      // Convertir en MP3
       await ffmpeg.run('-i', inputName, '-c:a', 'mp3', '-b:a', '128k', 'output.mp3');
+      console.log('Conversion FFmpeg terminée');
       const mp3Data = ffmpeg.FS('readFile', 'output.mp3');
       const mp3Blob = new Blob([mp3Data.buffer], { type: 'audio/mp3' });
 
-      // Télécharger
       const link = document.createElement('a');
       link.href = URL.createObjectURL(mp3Blob);
       link.download = `${fileName}.mp3`;
       link.click();
       console.log('Fichier MP3 téléchargé:', `${fileName}.mp3`);
 
-      // Nettoyer
       ffmpeg.FS('unlink', inputName);
       ffmpeg.FS('unlink', 'output.mp3');
     } catch (error) {
