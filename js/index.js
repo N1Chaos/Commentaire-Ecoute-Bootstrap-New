@@ -2130,9 +2130,9 @@ async function setupAudioRecorder() {
     if (!recorder || recorder.state === 'inactive') {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        // Prioriser MP3, puis WAV, puis WebM
-        const mimeType = MediaRecorder.isTypeSupported('audio/mp3') ? 'audio/mp3' :
-                        MediaRecorder.isTypeSupported('audio/wav') ? 'audio/wav' : 'audio/webm;codecs=opus';
+        // Prioriser WAV, puis MP3, puis WebM
+        const mimeType = MediaRecorder.isTypeSupported('audio/wav') ? 'audio/wav' :
+                        MediaRecorder.isTypeSupported('audio/mp3') ? 'audio/mp3' : 'audio/webm;codecs=opus';
         console.log('MIME type utilisé pour l’enregistrement:', mimeType);
         recorder = new MediaRecorder(stream, { mimeType });
         audioChunks = [];
@@ -2240,16 +2240,20 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     try {
       console.log('Tentative de chargement de FFmpeg');
+      if (!FFmpeg.createFFmpeg) {
+        throw new Error('FFmpeg.js non chargé correctement');
+      }
       const { createFFmpeg, fetchFile } = FFmpeg;
       const ffmpeg = createFFmpeg({ log: true });
       await ffmpeg.load();
       console.log('FFmpeg chargé avec succès');
 
       const inputName = inputType.includes('wav') ? 'input.wav' : 'input.webm';
+      console.log('Écriture du fichier d’entrée:', inputName);
       ffmpeg.FS('writeFile', inputName, await fetchFile(window.audioBlob));
-      console.log('Fichier d’entrée écrit:', inputName);
 
-      await ffmpeg.run('-i', inputName, '-c:a', 'mp3', '-b:a', '128k', 'output.mp3');
+      console.log('Lancement de la conversion FFmpeg');
+      await ffmpeg.run('-i', inputName, '-c:a', 'libmp3lame', '-b:a', '128k', 'output.mp3');
       console.log('Conversion FFmpeg terminée');
       const mp3Data = ffmpeg.FS('readFile', 'output.mp3');
       const mp3Blob = new Blob([mp3Data.buffer], { type: 'audio/mp3' });
