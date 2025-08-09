@@ -2242,13 +2242,13 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // Stocker les données des pays
-   let countryData = {};
-    const isoCorrections = {
-      'UK': 'GB',
-      'AN': 'NL',
-      'TP': 'TL'
-    };
-   const capitalFallbacks = {
+let countryData = {};
+const isoCorrections = {
+  'UK': 'GB',
+  'AN': 'NL',
+  'TP': 'TL'
+};
+const capitalFallbacks = {
   'AF': 'Kaboul',
   'AL': 'Tirana',
   'DZ': 'Alger',
@@ -2444,8 +2444,6 @@ document.addEventListener("DOMContentLoaded", () => {
   'YE': 'Sanaa',
   'ZM': 'Lusaka',
   'ZW': 'Harare',
-  
-  // Territoires dépendants et régions autonomes
   'AW': 'Oranjestad',
   'AI': 'The Valley',
   'BM': 'Hamilton',
@@ -2474,29 +2472,25 @@ document.addEventListener("DOMContentLoaded", () => {
   'TC': 'Cockburn Town',
   'VI': 'Charlotte Amalie',
   'WF': 'Mata-Utu',
-  
-  // Corrections pour les territoires français
-  'GF': 'Cayenne',
-  'GP': 'Basse-Terre',
-  'MQ': 'Fort-de-France',
-  'RE': 'Saint-Denis',
-  'PF': 'Papeete',
-  'NC': 'Nouméa',
-  'YT': 'Mamoudzou',
-  
-  // Autres territoires
   'AX': 'Mariehamn',
   'AS': 'Pago Pago',
   'IO': 'Diego Garcia',
   'CC': 'West Island',
   'CX': 'Flying Fish Cove',
   'TF': 'Port-aux-Français',
-  'HM': '', // Pas de capitale
+  'HM': '',
   'PS': 'Ramallah',
   'PN': 'Adamstown',
   'GS': 'King Edward Point',
-  'UM': '', // Pas de capitale unique
-  'EH': 'Laâyoune'
+  'UM': '',
+  'EH': 'Laâyoune',
+  'GF': 'Cayenne',
+  'GP': 'Basse-Terre',
+  'MQ': 'Fort-de-France',
+  'RE': 'Saint-Denis',
+  'PF': 'Papeete',
+  'NC': 'Nouméa',
+  'YT': 'Mamoudzou'
 };
 
 // Données de secours pour la France et la Norvège
@@ -2511,119 +2505,10 @@ const fallbackCountryData = {
   }
 };
 
-// Charger les données des pays depuis countries.json
-async function loadCountryData() {
-  try {
-    const response = await fetch('data/countries.json');
-    if (!response.ok) {
-      throw new Error(`Erreur HTTP ${response.status}: Impossible de charger countries.json`);
-    }
-    const data = await response.json();
-    data.forEach(country => {
-      countryData[country.cca2] = {
-        flag: country.flags.png,
-        languages: Object.values(country.languages).join(', ')
-      };
-    });
-    console.log('countryData chargé:', countryData);
-  } catch (error) {
-    console.error('Erreur lors du chargement de countries.json:', error);
-    // Utiliser les données de secours si countries.json échoue
-    Object.assign(countryData, fallbackCountryData);
-    console.log('Données de secours appliquées:', countryData);
-  }
-}
-
-// Charger le GeoJSON pour la carte
-async function loadMap() {
-  await loadCountryData(); // Attendre que countryData soit chargé
-  try {
-    const response = await fetch('data/ne_110m_admin_0_countries.geojson'); // Utiliser le fichier local
-    if (!response.ok) {
-      throw new Error(`Erreur HTTP ${response.status}: Impossible de charger le GeoJSON`);
-    }
-    const data = await response.json();
-    geojsonLayer = L.geoJSON(data, {
-      style: {
-        color: '#3388ff',
-        weight: 2,
-        opacity: 1,
-        fillOpacity: 0.2
-      },
-      onEachFeature: function (feature, layer) {
-        let isoCode = feature.properties.ISO_A2 || 'N/A';
-        // Correction spécifique pour la France et la Norvège
-        if (feature.properties.NAME_FR === 'France' || feature.properties.ADMIN === 'France') {
-          isoCode = 'FR';
-        } else if (feature.properties.NAME_FR === 'Norvège' || feature.properties.ADMIN === 'Norway') {
-          isoCode = 'NO';
-        } else {
-          isoCode = isoCorrections[isoCode] || isoCode;
-        }
-        console.log(`Pays: ${feature.properties.NAME_FR || feature.properties.ADMIN}, ISO_A2: ${feature.properties.ISO_A2}, Corrigé: ${isoCode}`); // Débogage
-        const countryInfo = countryData[isoCode] || fallbackCountryData[isoCode] || {};
-        const flagUrl = countryInfo.flag || 'N/A';
-        let languages = countryInfo.languages || 'N/A';
-        if (languages !== 'N/A') {
-          languages = languages
-            .split(', ')
-            .map(lang => languageTranslations[lang] || lang)
-            .join(', ');
-        }
-        const capital = feature.properties.CAPITAL || capitalFallbacks[isoCode] || 'N/A';
-        const population = feature.properties.POP_EST ? feature.properties.POP_EST.toLocaleString('fr-FR') : 'N/A';
-        const countryName = feature.properties.NAME_FR || feature.properties.ADMIN || 'N/A';
-
-        if (!feature.properties.CAPITAL) {
-          console.log(`Capitale manquante pour ${countryName} :`, {
-            ISO_A2: feature.properties.ISO_A2,
-            Corrigé: isoCode,
-            FallbackCapital: capitalFallbacks[isoCode] || 'N/A'
-          });
-        }
-
-        let popupContent = `<b>Pays :</b> ${countryName}<br>`;
-        popupContent += `<b>Code ISO :</b> ${isoCode}<br>`;
-        popupContent += `<b>Capitale :</b> ${capital}<br>`;
-        popupContent += `<b>Population :</b> ${population}<br>`;
-        popupContent += `<b>Langue(s) officielle(s) :</b> ${languages}<br>`;
-        if (flagUrl !== 'N/A') {
-          popupContent += `<b>Drapeau :</b><br><img src="${flagUrl}" alt="Drapeau de ${countryName}" style="width: 50px; height: auto;" />`;
-        } else {
-          popupContent += `<b>Drapeau :</b> Non disponible<br>`;
-        }
-
-        layer.bindPopup(popupContent);
-        layer.on({
-          click: function (e) {
-            map.fitBounds(e.target.getBounds());
-          },
-          mouseover: function (e) {
-            e.target.setStyle({
-              fillOpacity: 0.5,
-              weight: 3
-            });
-          },
-          mouseout: function (e) {
-            geojsonLayer.resetStyle(e.target);
-          }
-        });
-      }
-    }).addTo(map);
-  } catch (error) {
-    console.error('Erreur lors du chargement GeoJSON :', error);
-    alert('Impossible de charger les données des pays. Vérifiez que le fichier data/ne_110m_admin_0_countries.geojson est présent et accessible.');
-  }
-}
-
-// Lancer le chargement de la carte
-loadMap();
-
 // Table de correspondance pour traduire les codes/noms de langues en français
 const languageTranslations = {
-  // Codes ISO
   'eng': 'Anglais',
-  'fra': 'Français', 
+  'fra': 'Français',
   'spa': 'Espagnol',
   'deu': 'Allemand',
   'ita': 'Italien',
@@ -2717,103 +2602,7 @@ const languageTranslations = {
   'mlg': 'Malgache',
   'ber': 'Berbère',
   'kab': 'Kabyle',
-  
-  // Noms anglais avec traductions
-  'English': 'Anglais',
   'French': 'Français',
-  'Spanish': 'Espagnol',
-  'German': 'Allemand',
-  'Italian': 'Italien',
-  'Portuguese': 'Portugais',
-  'Russian': 'Russe',
-  'Arabic': 'Arabe',
-  'Hindi': 'Hindi',
-  'Chinese': 'Chinois',
-  'Japanese': 'Japonais',
-  'Korean': 'Coréen',
-  'Dutch': 'Néerlandais',
-  'Swedish': 'Suédois',
-  'Finnish': 'Finnois',
-  'Danish': 'Danois',
-  'Norwegian': 'Norvégien',
-  'Polish': 'Polonais',
-  'Ukrainian': 'Ukrainien',
-  'Turkish': 'Turc',
-  'Persian': 'Persan',
-  'Urdu': 'Ourdou',
-  'Bengali': 'Bengali',
-  'Punjabi': 'Pendjabi',
-  'Tamil': 'Tamoul',
-  'Telugu': 'Télougou',
-  'Thai': 'Thaï',
-  'Vietnamese': 'Vietnamien',
-  'Indonesian': 'Indonésien',
-  'Malay': 'Malais',
-  'Hebrew': 'Hébreu',
-  'Greek': 'Grec',
-  'Romanian': 'Roumain',
-  'Hungarian': 'Hongrois',
-  'Czech': 'Tchèque',
-  'Slovak': 'Slovaque',
-  'Bulgarian': 'Bulgare',
-  'Croatian': 'Croate',
-  'Serbian': 'Serbe',
-  'Georgian': 'Géorgien',
-  'Armenian': 'Arménien',
-  'Azerbaijani': 'Azéri',
-  'Basque': 'Basque',
-  'Catalan': 'Catalan',
-  'Afrikaans': 'Afrikaans',
-  'Swahili': 'Swahili',
-  'Amharic': 'Amharique',
-  'Hausa': 'Haoussa',
-  'Yoruba': 'Yoruba',
-  'Igbo': 'Igbo',
-  'Zulu': 'Zoulou',
-  'Maltese': 'Maltais',
-  'Albanian': 'Albanais',
-  'Macedonian': 'Macédonien',
-  'Belarusian': 'Biélorusse',
-  'Kazakh': 'Kazakh',
-  'Uzbek': 'Ouzbek',
-  'Kyrgyz': 'Kirghiz',
-  'Tajik': 'Tadjik',
-  'Mongolian': 'Mongol',
-  'Burmese': 'Birman',
-  'Khmer': 'Khmer',
-  'Lao': 'Lao',
-  'Sinhala': 'Cingalais',
-  'Nepali': 'Népalais',
-  'Tibetan': 'Tibétain',
-  'Uighur': 'Ouïghour',
-  'Esperanto': 'Espéranto',
-  'Icelandic': 'Islandais',
-  'Irish': 'Irlandais',
-  'Welsh': 'Gallois',
-  'Breton': 'Breton',
-  'Corsican': 'Corse',
-  'Quechua': 'Quechua',
-  'Guarani': 'Guarani',
-  'Kurdish': 'Kurde',
-  'Sindhi': 'Sindhi',
-  'Pashto': 'Pachtou',
-  'Dhivehi': 'Maldivien',
-  'Maori': 'Maori',
-  'Navajo': 'Navajo',
-  'Chamorro': 'Chamorro',
-  'Tetum': 'Tétoum',
-  'Tongan': 'Tongien',
-  'Samoan': 'Samoan',
-  'Fijian': 'Fidjien',
-  'Gilbertese': 'Gilbertais',
-  'Tokelauan': 'Tokelau',
-  'Tuvaluan': 'Tuvalu',
-  'Niuean': 'Niuéen',
-  'Cook Islands Maori': 'Rarotongien',
-  'Marshallese': 'Marshallais',
-  'Malagasy': 'Malgache',
-  'Berber': 'Berbère',
-  'Kabyle': 'Kabyle',
   'Norwegian Nynorsk': 'Norvégien Nynorsk',
   'Norwegian Bokmål': 'Norvégien Bokmål',
   'Sami': 'Sami'
@@ -2823,7 +2612,30 @@ var map = null;
 var geojsonLayer = null;
 var carteMondeModal = document.getElementById('carteMondeModal');
 
-carteMondeModal.addEventListener('shown.bs.modal', function () {
+// Charger les données des pays depuis countries.json
+async function loadCountryData() {
+  try {
+    const response = await fetch('data/countries.json');
+    if (!response.ok) {
+      throw new Error(`Erreur HTTP ${response.status}: Impossible de charger countries.json`);
+    }
+    const data = await response.json();
+    data.forEach(country => {
+      countryData[country.cca2] = {
+        flag: country.flags.png,
+        languages: Object.values(country.languages).join(', ')
+      };
+    });
+    console.log('countryData chargé:', countryData);
+  } catch (error) {
+    console.error('Erreur lors du chargement de countries.json:', error);
+    // Utiliser les données de secours si countries.json échoue
+    Object.assign(countryData, fallbackCountryData);
+    console.log('Données de secours appliquées:', countryData);
+  }
+}
+
+carteMondeModal.addEventListener('shown.bs.modal', async function () {
   if (map === null) {
     map = L.map('map').setView([0, 0], 2);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -2831,81 +2643,86 @@ carteMondeModal.addEventListener('shown.bs.modal', function () {
       maxZoom: 18
     }).addTo(map);
 
-    fetch('https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson')
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`Erreur HTTP ${response.status}: Impossible de charger le GeoJSON`);
-        }
-        return response.json();
-      })
-      .then(data => {
-        geojsonLayer = L.geoJSON(data, {
-          style: {
-            color: '#3388ff',
-            weight: 2,
-            opacity: 1,
-            fillOpacity: 0.2
-          },
-          onEachFeature: function (feature, layer) {
-            const isoCode = feature.properties.ISO_A2 || 'N/A';
-            const correctedIso = isoCorrections[isoCode] || isoCode;
-            const countryInfo = countryData[correctedIso] || {};
-            const flagUrl = countryInfo.flag || 'N/A';
-            // Traduire les langues en français
-            let languages = countryInfo.languages || 'N/A';
-            if (languages !== 'N/A') {
-              languages = languages
-                .split(', ')
-                .map(lang => languageTranslations[lang] || lang)
-                .join(', ');
-            }
-            const capital = feature.properties.CAPITAL || capitalFallbacks[correctedIso] || 'N/A';
-            const population = feature.properties.POP_EST ? feature.properties.POP_EST.toLocaleString('fr-FR') : 'N/A';
-            // Utiliser NAME_FR pour les noms en français
-            const countryName = feature.properties.NAME_FR || feature.properties.ADMIN || 'N/A';
+    // Charger countryData avant le GeoJSON
+    await loadCountryData();
 
-            // Journal de débogage pour les pays avec capitale manquante
-            if (!feature.properties.CAPITAL) {
-              console.log(`Capitale manquante pour ${countryName} :`, {
-                ISO_A2: isoCode,
-                CorrectedISO: correctedIso,
-                FallbackCapital: capitalFallbacks[correctedIso] || 'N/A'
-              });
-            }
+    try {
+      const response = await fetch('data/ne_110m_admin_0_countries.geojson'); // Utiliser le fichier local
+      if (!response.ok) {
+        throw new Error(`Erreur HTTP ${response.status}: Impossible de charger le GeoJSON`);
+      }
+      const data = await response.json();
+      geojsonLayer = L.geoJSON(data, {
+        style: {
+          color: '#3388ff',
+          weight: 2,
+          opacity: 1,
+          fillOpacity: 0.2
+        },
+        onEachFeature: function (feature, layer) {
+          let isoCode = feature.properties.ISO_A2 || 'N/A';
+          // Correction spécifique pour la France et la Norvège
+          if (feature.properties.NAME_FR === 'France' || feature.properties.ADMIN === 'France') {
+            isoCode = 'FR';
+          } else if (feature.properties.NAME_FR === 'Norvège' || feature.properties.ADMIN === 'Norway') {
+            isoCode = 'NO';
+          } else {
+            isoCode = isoCorrections[isoCode] || isoCode;
+          }
+          console.log(`Pays: ${feature.properties.NAME_FR || feature.properties.ADMIN}, ISO_A2: ${feature.properties.ISO_A2}, Corrigé: ${isoCode}`); // Débogage
+          const countryInfo = countryData[isoCode] || fallbackCountryData[isoCode] || {};
+          const flagUrl = countryInfo.flag || 'N/A';
+          let languages = countryInfo.languages || 'N/A';
+          if (languages !== 'N/A') {
+            languages = languages
+              .split(', ')
+              .map(lang => languageTranslations[lang] || lang)
+              .join(', ');
+          }
+          const capital = feature.properties.CAPITAL || capitalFallbacks[isoCode] || 'N/A';
+          const population = feature.properties.POP_EST ? feature.properties.POP_EST.toLocaleString('fr-FR') : 'N/A';
+          const countryName = feature.properties.NAME_FR || feature.properties.ADMIN || 'N/A';
 
-            let popupContent = `<b>Pays :</b> ${countryName}<br>`;
-            popupContent += `<b>Code ISO :</b> ${correctedIso}<br>`;
-            popupContent += `<b>Capitale :</b> ${capital}<br>`;
-            popupContent += `<b>Population :</b> ${population}<br>`;
-            popupContent += `<b>Langue(s) officielle(s) :</b> ${languages}<br>`;
-            if (flagUrl !== 'N/A') {
-              popupContent += `<b>Drapeau :</b><br><img src="${flagUrl}" alt="Drapeau de ${countryName}" style="width: 50px; height: auto;" />`;
-            } else {
-              popupContent += `<b>Drapeau :</b> Non disponible<br>`;
-            }
-
-            layer.bindPopup(popupContent);
-            layer.on({
-              click: function (e) {
-                map.fitBounds(e.target.getBounds());
-              },
-              mouseover: function (e) {
-                e.target.setStyle({
-                  fillOpacity: 0.5,
-                  weight: 3
-                });
-              },
-              mouseout: function (e) {
-                geojsonLayer.resetStyle(e.target);
-              }
+          if (!feature.properties.CAPITAL) {
+            console.log(`Capitale manquante pour ${countryName} :`, {
+              ISO_A2: isoCode,
+              Corrigé: isoCode,
+              FallbackCapital: capitalFallbacks[isoCode] || 'N/A'
             });
           }
-        }).addTo(map);
-      })
-      .catch(error => {
-        console.error('Erreur lors du chargement GeoJSON :', error);
-        alert('Impossible de charger les données des pays. Vérifiez votre connexion ou l\'URL du GeoJSON.');
-      });
+
+          let popupContent = `<b>Pays :</b> ${countryName}<br>`;
+          popupContent += `<b>Code ISO :</b> ${isoCode}<br>`;
+          popupContent += `<b>Capitale :</b> ${capital}<br>`;
+          popupContent += `<b>Population :</b> ${population}<br>`;
+          popupContent += `<b>Langue(s) officielle(s) :</b> ${languages}<br>`;
+          if (flagUrl !== 'N/A') {
+            popupContent += `<b>Drapeau :</b><br><img src="${flagUrl}" alt="Drapeau de ${countryName}" style="width: 50px; height: auto;" />`;
+          } else {
+            popupContent += `<b>Drapeau :</b> Non disponible<br>`;
+          }
+
+          layer.bindPopup(popupContent);
+          layer.on({
+            click: function (e) {
+              map.fitBounds(e.target.getBounds());
+            },
+            mouseover: function (e) {
+              e.target.setStyle({
+                fillOpacity: 0.5,
+                weight: 3
+              });
+            },
+            mouseout: function (e) {
+              geojsonLayer.resetStyle(e.target);
+            }
+          });
+        }
+      }).addTo(map);
+    } catch (error) {
+      console.error('Erreur lors du chargement GeoJSON :', error);
+      alert('Impossible de charger les données des pays. Vérifiez que le fichier data/ne_110m_admin_0_countries.geojson est présent et accessible.');
+    }
   } else {
     map.invalidateSize();
   }
