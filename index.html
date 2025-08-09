@@ -18,8 +18,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<!-- FFmpeg.js pour conversion WAV/WebM en MP3 -->
-  <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.10.1/dist/ffmpeg.min.js"></script>
+
   
   <!-- Meta tags for SEO -->
   <meta name="description" content="Écoutez, commentez et partagez vos impressions musicales. Un outil interactif pour commenter la musique."/>
@@ -248,16 +247,6 @@
 
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-   <!-- Service Worker pour COOP/COEP -->
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/coi-serviceworker.js')
-        .then(reg => console.log('Service Worker registered', reg))
-        .catch(err => console.error('Service Worker registration failed', err));
-    }
-  </script>
-
 
   <script src="js/index.js"></script>
   

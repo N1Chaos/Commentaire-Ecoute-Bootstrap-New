@@ -2111,6 +2111,71 @@ async function setupAudioPlayer() {
   });
 }
 
+// ==================== ENREGISTREMENT AUDIO ====================
+async function setupAudioRecorder() {
+  const recordButton = document.getElementById('recordButton');
+  const recordingIndicator = document.getElementById('recordingIndicator');
+  const recordingConfirmation = document.getElementById('recordingConfirmation');
+  let audioChunks = [];
+  let recorder = null;
+  let recordingSeconds = 0;
+  let timerInterval = null;
+
+  if (!recordButton || !recordingIndicator || !recordingConfirmation) {
+    console.error('Éléments d’enregistrement non trouvés dans le DOM');
+    return;
+  }
+
+  recordButton.onclick = async () => {
+    if (!recorder || recorder.state === 'inactive') {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        recorder = new MediaRecorder(stream);
+        audioChunks = [];
+
+        recorder.ondataavailable = e => audioChunks.push(e.data);
+        recorder.onstop = () => {
+          const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+          const audioUrl = URL.createObjectURL(audioBlob);
+          document.getElementById('audioPlayback').src = audioUrl;
+          window.audioBlob = audioBlob;
+          recordButton.classList.remove('btn-warning');
+          recordButton.classList.add('btn-danger');
+          recordButton.innerHTML = '<i class="bi bi-mic-fill"></i> Enregistrer votre commentaire';
+          recordingIndicator.style.display = 'none';
+          clearInterval(timerInterval);
+          recordingSeconds = 0;
+          recordingConfirmation.style.display = 'inline';
+          setTimeout(() => {
+            recordingConfirmation.style.display = 'none';
+          }, 10000);
+          console.log('Enregistrement arrêté, commentaire enregistré');
+          stream.getTracks().forEach(track => track.stop());
+        };
+
+        recorder.start();
+        recordButton.classList.remove('btn-danger');
+        recordButton.classList.add('btn-warning');
+        recordButton.innerHTML = '<i class="bi bi-stop-fill"></i> Arrêter l\'enregistrement';
+        recordingIndicator.style.display = 'inline';
+        recordingSeconds = 0;
+        recordingIndicator.textContent = `Enregistrement en cours... (0 s)`;
+        timerInterval = setInterval(() => {
+          recordingSeconds++;
+          recordingIndicator.textContent = `Enregistrement en cours... (${recordingSeconds} s)`;
+        }, 1000);
+        recordingConfirmation.style.display = 'none';
+        console.log('Enregistrement démarré');
+      } catch (error) {
+        console.error('Erreur microphone:', error);
+        // Pas d'alerte, comme demandé
+      }
+    } else {
+      recorder.stop();
+    }
+  };
+}
+
 // ==================== INITIALISATION ====================
 document.addEventListener("DOMContentLoaded", async () => {
   const currentPage = getPageName();
@@ -2157,52 +2222,61 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!window.audioBlob) return alert('Aucun enregistrement disponible');
 
     const fileName = document.getElementById('fileName').value || 'enregistrement';
-    const inputType = window.audioMimeType || 'audio/webm';
-
-    // Si déjà en MP3, télécharger directement
-    if (inputType.includes('mp3')) {
-      console.log('Enregistrement déjà en MP3, téléchargement direct');
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(window.audioBlob);
-      link.download = `${fileName}.mp3`;
-      link.click();
-      return;
-    }
-
+    
+    // Convertir WAV en MP3
     try {
-      console.log('Tentative de chargement de FFmpeg');
-      if (!FFmpeg.createFFmpeg) {
-        throw new Error('FFmpeg.js non chargé correctement');
+      const arrayBuffer = await window.audioBlob.arrayBuffer();
+      const audioContext = new AudioContext();
+      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+      // Extraire les données audio (mono ou stéréo)
+      const channels = audioBuffer.numberOfChannels;
+      const sampleRate = audioBuffer.sampleRate;
+      const length = audioBuffer.length;
+      const channelData = [];
+      for (let i = 0; i < channels; i++) {
+        channelData.push(audioBuffer.getChannelData(i));
       }
-      const { createFFmpeg, fetchFile } = FFmpeg;
-      const ffmpeg = createFFmpeg({ log: true });
-      await ffmpeg.load();
-      console.log('FFmpeg chargé avec succès');
 
-      const inputName = inputType.includes('wav') ? 'input.wav' : 'input.webm';
-      console.log('Écriture du fichier d’entrée:', inputName);
-      ffmpeg.FS('writeFile', inputName, await fetchFile(window.audioBlob));
+      // Initialiser Lamejs
+      const mp3Encoder = new lamejs.Mp3Encoder(channels, sampleRate, 128); // 128 kbps
+      const mp3Data = [];
+      const sampleBlockSize = 1152; // Taille des blocs pour Lamejs
 
-      console.log('Lancement de la conversion FFmpeg');
-      await ffmpeg.run('-i', inputName, '-c:a', 'libmp3lame', '-b:a', '128k', 'output.mp3');
-      console.log('Conversion FFmpeg terminée');
-      const mp3Data = ffmpeg.FS('readFile', 'output.mp3');
-      const mp3Blob = new Blob([mp3Data.buffer], { type: 'audio/mp3' });
+      for (let i = 0; i < length; i += sampleBlockSize) {
+        const left = channelData[0].slice(i, i + sampleBlockSize);
+        const right = channels > 1 ? channelData[1].slice(i, i + sampleBlockSize) : left;
 
+        // Convertir les échantillons en entiers 16 bits
+        const leftInt = Int16Array.from(left, x => x * 32767);
+        const rightInt = Int16Array.from(right, x => x * 32767);
+
+        // Encoder en MP3
+        const mp3buf = mp3Encoder.encodeBuffer(leftInt, rightInt);
+        if (mp3buf.length > 0) {
+          mp3Data.push(mp3buf);
+        }
+      }
+
+      // Finaliser l'encodage
+      const mp3buf = mp3Encoder.flush();
+      if (mp3buf.length > 0) {
+        mp3Data.push(mp3buf);
+      }
+
+      // Créer le Blob MP3
+      const mp3Blob = new Blob(mp3Data, { type: 'audio/mp3' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(mp3Blob);
       link.download = `${fileName}.mp3`;
       link.click();
       console.log('Fichier MP3 téléchargé:', `${fileName}.mp3`);
-
-      ffmpeg.FS('unlink', inputName);
-      ffmpeg.FS('unlink', 'output.mp3');
     } catch (error) {
       console.error('Erreur lors de la conversion en MP3:', error);
-      alert('Erreur lors de la conversion en MP3. Téléchargement au format original.');
+      alert('Erreur lors de la conversion en MP3. Téléchargement en WAV à la place.');
       const link = document.createElement('a');
       link.href = URL.createObjectURL(window.audioBlob);
-      link.download = `${fileName}.${inputType.includes('wav') ? 'wav' : 'webm'}`;
+      link.download = `${fileName}.wav`;
       link.click();
     }
   };
