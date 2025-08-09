@@ -1931,13 +1931,13 @@ async function openDB() {
   });
 }
 
-async function saveAudioToDB(blob, time) {
+async function saveAudioToDB(blob, time, fileName) { // Ajout du paramètre fileName
   try {
     const db = await openDB();
     const transaction = db.transaction(['audioStore'], 'readwrite');
     const store = transaction.objectStore('audioStore');
-    await store.put({ id: 'userAudio', blob, time });
-    console.log('Audio et minutage sauvegardés dans IndexedDB');
+    await store.put({ id: 'userAudio', blob, time, fileName }); // Sauvegarde du nom du fichier
+    console.log('Audio, minutage et nom du fichier sauvegardés dans IndexedDB');
   } catch (error) {
     console.error('Erreur lors de la sauvegarde dans IndexedDB:', error);
     alert('Erreur lors de la sauvegarde du fichier audio.');
@@ -1995,15 +1995,16 @@ async function setupAudioPlayer() {
   const player = document.getElementById('audioPlayer');
   const source = document.getElementById('audioSource');
   const fileInput = document.getElementById('audioFile');
+  const fileNameDisplay = document.getElementById('audioFileName'); // Élément pour afficher le nom
 
-  if (!player || !source || !fileInput) {
-    console.error('Éléments audio non trouvés dans le DOM');
+  if (!player || !source || !fileInput || !fileNameDisplay) {
+    console.error('Éléments audio ou affichage du nom non trouvés dans le DOM');
     return;
   }
 
-  // Recharger l'audio sauvegardé si disponible
+  // Recharger l'audio sauvegardé et le nom du fichier si disponible
   const savedAudioData = await loadAudioFromDB();
-  const savedAudioState = await loadAudioStateFromDB(); // Charger l'état audio le plus récent
+  const savedAudioState = await loadAudioStateFromDB();
   if (savedAudioData && savedAudioData.blob) {
     console.log('Audio trouvé dans IndexedDB');
     try {
@@ -2012,7 +2013,13 @@ async function setupAudioPlayer() {
       player.load();
       console.log('Audio chargé dans le lecteur');
 
-      // Utiliser l'état le plus récent de audioState si disponible, sinon userAudio
+      // Afficher le nom du fichier s'il existe
+      if (savedAudioData.fileName) {
+        fileNameDisplay.textContent = `Fichier chargé : ${savedAudioData.fileName}`;
+      } else {
+        fileNameDisplay.textContent = 'Aucun fichier chargé';
+      }
+
       const savedTime = savedAudioState?.time || parseFloat(savedAudioData.time || 0);
       const isPlaying = savedAudioState?.isPlaying || false;
       console.log('Minutage à restaurer:', savedTime, 'Lecture:', isPlaying);
@@ -2038,9 +2045,9 @@ async function setupAudioPlayer() {
     }
   } else {
     console.log('Aucun audio sauvegardé dans IndexedDB');
+    fileNameDisplay.textContent = 'Aucun fichier chargé';
   }
 
-  // Mettre à jour l'état audio dans IndexedDB et localStorage
   const updateAudioState = async () => {
     const state = {
       time: player.currentTime,
@@ -2048,11 +2055,10 @@ async function setupAudioPlayer() {
       duration: player.duration || 0
     };
     await saveAudioStateToDB(state);
-    localStorage.setItem('audioState', JSON.stringify(state)); // Signal via localStorage
+    localStorage.setItem('audioState', JSON.stringify(state));
     console.log('État audio mis à jour:', state);
   };
 
-  // Événements du lecteur audio
   player.addEventListener('timeupdate', updateAudioState);
   player.addEventListener('play', updateAudioState);
   player.addEventListener('pause', updateAudioState);
@@ -2062,7 +2068,6 @@ async function setupAudioPlayer() {
     localStorage.setItem('audioState', JSON.stringify(state));
   });
 
-  // Écouter les changements d'état depuis les pages annexes
   window.addEventListener('storage', (event) => {
     if (event.key === 'audioState') {
       const state = JSON.parse(event.newValue);
@@ -2077,22 +2082,25 @@ async function setupAudioPlayer() {
     }
   });
 
-  // Gérer l'importation d'un nouveau fichier audio
   fileInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file) {
       console.log('Aucun fichier sélectionné');
+      fileNameDisplay.textContent = 'Aucun fichier chargé';
       return;
     }
 
     console.log('Importation d\'un nouveau fichier:', file.name, 'Taille (octets):', file.size);
+    fileNameDisplay.textContent = `Fichier chargé : ${file.name}`; // Afficher le nom du fichier
+    localStorage.setItem('audioFileName', file.name); // Sauvegarder le nom dans localStorage
+
     const reader = new FileReader();
     reader.onload = async (e) => {
       try {
         const audioData = e.target.result;
         source.src = audioData;
         player.load();
-        await saveAudioToDB(file, 0);
+        await saveAudioToDB(file, 0, file.name); // Sauvegarder le nom du fichier
         console.log('Nouveau fichier audio sauvegardé dans IndexedDB');
         player.addEventListener('canplaythrough', () => {
           player.currentTime = 0;
@@ -2101,11 +2109,13 @@ async function setupAudioPlayer() {
       } catch (error) {
         console.error('Erreur lors du chargement du nouveau fichier:', error);
         alert('Erreur lors du chargement du fichier audio.');
+        fileNameDisplay.textContent = 'Erreur lors du chargement';
       }
     };
     reader.onerror = (e) => {
       console.error('Erreur de lecture du fichier:', e);
       alert('Impossible de lire le fichier audio.');
+      fileNameDisplay.textContent = 'Erreur lors du chargement';
     };
     reader.readAsDataURL(file);
   });
