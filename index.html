@@ -20,6 +20,11 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
  <!-- LameJS pour conversion WAV en MP3 -->
   <script src="https://cdn.jsdelivr.net/npm/lamejs@0.1.0/lame.min.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.1.2/docx.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   
   <!-- Meta tags for SEO -->
   <meta name="description" content="Écoutez, commentez et partagez vos impressions musicales. Un outil interactif pour commenter la musique."/>
@@ -198,6 +203,14 @@
         <div class="card-body">
           <h3 class="card-title">Commentaire écrit</h3>
           <textarea id="commentText" class="form-control" style="min-height: 120px; resize: vertical" rows="5" placeholder="Écrivez votre commentaire"></textarea>
+          <div id="formatModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; padding:20px; border:1px solid #ccc; z-index:1000;">
+  <p>Choisis le format pour ton commentaire :</p>
+  <button onclick="exportComment('DOCX')">Word</button>
+  <button onclick="exportComment('ODF')">ODF</button>
+  <button onclick="exportComment('PDF')">PDF</button>
+  <button onclick="exportComment('TXT')">TXT</button>
+  <button onclick="document.getElementById('formatModal').style.display='none'">Annuler</button>
+</div>
           <button class="btn btn-primary mt-3" id="generateTextButton" onclick="generateTextFile()">
             <i class="bi bi-file-earmark-text"></i> Générer un fichier texte
           </button>

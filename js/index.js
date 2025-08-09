@@ -2301,15 +2301,76 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 // ==================== GÉNÉRATION FICHIER TEXTE ====================
-function generateTextFile() {
-  const text = document.getElementById('commentText').value.trim();
-  if (!text) return alert('Veuillez écrire un commentaire');
+async function generateTextFile() {
+  const comment = document.getElementById('commentText').value;
+  if (!comment) {
+    alert('Aucun commentaire à exporter.');
+    return;
+  }
+  const modal = new bootstrap.Modal(document.getElementById('formatModal'));
+  modal.show();
+}
 
-  const blob = new Blob([text], { type: 'text/plain' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = 'commentaire.txt';
-  link.click();
+async function exportComment(format) {
+  const comment = document.getElementById('commentText').value;
+  const modal = bootstrap.Modal.getInstance(document.getElementById('formatModal'));
+  modal.hide();
+  try {
+    if (format === 'DOCX') {
+      const { Document, Paragraph, TextRun, Packer } = window.docx;
+      const doc = new Document({
+        sections: [{
+          properties: {},
+          children: [
+            new Paragraph({
+              children: [new TextRun({ text: 'Commentaire musical', bold: true, size: 28 })],
+              spacing: { after: 200 }
+            }),
+            new Paragraph({
+              children: [new TextRun({ text: comment, size: 24 })]
+            })
+          ]
+        }]
+      });
+      const blob = await Packer.toBlob(doc);
+      saveAs(blob, 'commentaire.docx');
+      console.log('Fichier DOCX exporté');
+    } else if (format === 'ODF') {
+      const odfContent = `
+<?xml version="1.0" encoding="UTF-8"?>
+<office:document-content
+  xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"
+  xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0">
+  <office:body>
+    <office:text>
+      <text:h text:style-name="Heading_20_1">Commentaire musical</text:h>
+      <text:p>${comment.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</text:p>
+    </office:text>
+  </office:body>
+</office:document-content>`;
+      const odfBlob = new Blob([odfContent], { type: 'application/vnd.oasis.opendocument.text' });
+      const url = URL.createObjectURL(odfBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'commentaire.odt';
+      link.click();
+      URL.revokeObjectURL(url);
+      console.log('Fichier ODF exporté');
+    } else {
+      throw new Error('Format non reconnu');
+    }
+  } catch (error) {
+    console.error('Erreur lors de l\'exportation:', error);
+    alert('Erreur lors de l\'exportation. Enregistrement en TXT.');
+    const blob = new Blob([comment], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'commentaire.txt';
+    link.click();
+    URL.revokeObjectURL(url);
+    console.log('Fichier TXT exporté après erreur');
+  }
 }
 
 // ==================== INITIALISATION ====================
