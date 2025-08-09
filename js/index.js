@@ -2111,74 +2111,6 @@ async function setupAudioPlayer() {
   });
 }
 
-// ==================== ENREGISTREMENT AUDIO ====================
-async function setupAudioRecorder() {
-  const recordButton = document.getElementById('recordButton');
-  const recordingIndicator = document.getElementById('recordingIndicator');
-  const recordingConfirmation = document.getElementById('recordingConfirmation');
-  let audioChunks = [];
-  let recorder = null;
-  let recordingSeconds = 0;
-  let timerInterval = null;
-
-  if (!recordButton || !recordingIndicator || !recordingConfirmation) {
-    console.error('Éléments d’enregistrement non trouvés dans le DOM');
-    return;
-  }
-
-  recordButton.onclick = async () => {
-    if (!recorder || recorder.state === 'inactive') {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        // Prioriser WAV, puis WebM (pas de MP3 direct car non supporté)
-        const mimeType = MediaRecorder.isTypeSupported('audio/wav') ? 'audio/wav' : 'audio/webm;codecs=opus';
-        console.log('MIME type utilisé pour l’enregistrement:', mimeType);
-        recorder = new MediaRecorder(stream, { mimeType });
-        audioChunks = [];
-
-        recorder.ondataavailable = e => audioChunks.push(e.data);
-        recorder.onstop = () => {
-          const audioBlob = new Blob(audioChunks, { type: mimeType });
-          const audioUrl = URL.createObjectURL(audioBlob);
-          document.getElementById('audioPlayback').src = audioUrl;
-          window.audioBlob = audioBlob;
-          window.audioMimeType = mimeType;
-          recordButton.classList.remove('btn-warning');
-          recordButton.classList.add('btn-danger');
-          recordButton.innerHTML = '<i class="bi bi-mic-fill"></i> Enregistrer votre commentaire';
-          recordingIndicator.style.display = 'none';
-          clearInterval(timerInterval);
-          recordingSeconds = 0;
-          recordingConfirmation.style.display = 'inline';
-          setTimeout(() => {
-            recordingConfirmation.style.display = 'none';
-          }, 10000);
-          console.log('Enregistrement arrêté, commentaire enregistré, type:', mimeType);
-          stream.getTracks().forEach(track => track.stop());
-        };
-
-        recorder.start();
-        recordButton.classList.remove('btn-danger');
-        recordButton.classList.add('btn-warning');
-        recordButton.innerHTML = '<i class="bi bi-stop-fill"></i> Arrêter l\'enregistrement';
-        recordingIndicator.style.display = 'inline';
-        recordingSeconds = 0;
-        recordingIndicator.textContent = `Enregistrement en cours... (0 s)`;
-        timerInterval = setInterval(() => {
-          recordingSeconds++;
-          recordingIndicator.textContent = `Enregistrement en cours... (${recordingSeconds} s)`;
-        }, 1000);
-        recordingConfirmation.style.display = 'none';
-        console.log('Enregistrement démarré avec', mimeType);
-      } catch (error) {
-        console.error('Erreur microphone:', error);
-      }
-    } else {
-      recorder.stop();
-    }
-  };
-}
-
 // ==================== INITIALISATION ====================
 document.addEventListener("DOMContentLoaded", async () => {
   const currentPage = getPageName();
@@ -2226,14 +2158,53 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const fileName = document.getElementById('fileName').value || 'enregistrement';
     const inputType = window.audioMimeType || 'audio/webm';
-    const extension = inputType.includes('wav') ? 'wav' : 'webm';
 
-    console.log('Téléchargement direct au format:', extension);
-    alert('Téléchargement au format ' + extension + '. La conversion en MP3 nécessite une configuration serveur (HTTPS + en-têtes COOP/COEP).');
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(window.audioBlob);
-    link.download = `${fileName}.${extension}`;
-    link.click();
+    // Si déjà en MP3, télécharger directement
+    if (inputType.includes('mp3')) {
+      console.log('Enregistrement déjà en MP3, téléchargement direct');
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(window.audioBlob);
+      link.download = `${fileName}.mp3`;
+      link.click();
+      return;
+    }
+
+    try {
+      console.log('Tentative de chargement de FFmpeg');
+      if (!FFmpeg.createFFmpeg) {
+        throw new Error('FFmpeg.js non chargé correctement');
+      }
+      const { createFFmpeg, fetchFile } = FFmpeg;
+      const ffmpeg = createFFmpeg({ log: true });
+      await ffmpeg.load();
+      console.log('FFmpeg chargé avec succès');
+
+      const inputName = inputType.includes('wav') ? 'input.wav' : 'input.webm';
+      console.log('Écriture du fichier d’entrée:', inputName);
+      ffmpeg.FS('writeFile', inputName, await fetchFile(window.audioBlob));
+
+      console.log('Lancement de la conversion FFmpeg');
+      await ffmpeg.run('-i', inputName, '-c:a', 'libmp3lame', '-b:a', '128k', 'output.mp3');
+      console.log('Conversion FFmpeg terminée');
+      const mp3Data = ffmpeg.FS('readFile', 'output.mp3');
+      const mp3Blob = new Blob([mp3Data.buffer], { type: 'audio/mp3' });
+
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(mp3Blob);
+      link.download = `${fileName}.mp3`;
+      link.click();
+      console.log('Fichier MP3 téléchargé:', `${fileName}.mp3`);
+
+      ffmpeg.FS('unlink', inputName);
+      ffmpeg.FS('unlink', 'output.mp3');
+    } catch (error) {
+      console.error('Erreur lors de la conversion en MP3:', error);
+      alert('Erreur lors de la conversion en MP3. Téléchargement au format original.');
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(window.audioBlob);
+      link.download = `${fileName}.${inputType.includes('wav') ? 'wav' : 'webm'}`;
+      link.click();
+    }
   };
 });
 
