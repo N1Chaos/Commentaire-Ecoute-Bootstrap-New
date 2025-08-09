@@ -2499,6 +2499,18 @@ document.addEventListener("DOMContentLoaded", () => {
   'EH': 'Laâyoune'
 };
 
+// Données de secours pour la France et la Norvège
+const fallbackCountryData = {
+  'FR': {
+    flag: 'https://flagcdn.com/w320/fr.png',
+    languages: 'Français'
+  },
+  'NO': {
+    flag: 'https://flagcdn.com/w320/no.png',
+    languages: 'Norvégien Nynorsk, Norvégien Bokmål, Sami'
+  }
+};
+
 // Charger les données des pays depuis countries.json
 async function loadCountryData() {
   try {
