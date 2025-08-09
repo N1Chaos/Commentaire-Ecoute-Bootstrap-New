@@ -1931,13 +1931,14 @@ async function openDB() {
   });
 }
 
-async function saveAudioToDB(blob, time, fileName) { // Ajout du paramètre fileName
+async function saveAudioToDB(blob, time, fileName) {
   try {
     const db = await openDB();
     const transaction = db.transaction(['audioStore'], 'readwrite');
     const store = transaction.objectStore('audioStore');
-    await store.put({ id: 'userAudio', blob, time, fileName }); // Sauvegarde du nom du fichier
-    console.log('Audio, minutage et nom du fichier sauvegardés dans IndexedDB');
+    const audioData = { id: 'userAudio', blob, time, fileName };
+    await store.put(audioData);
+    console.log('Sauvegarde dans IndexedDB:', audioData); // Log pour vérifier
   } catch (error) {
     console.error('Erreur lors de la sauvegarde dans IndexedDB:', error);
     alert('Erreur lors de la sauvegarde du fichier audio.');
