@@ -2499,7 +2499,7 @@ document.addEventListener("DOMContentLoaded", () => {
   'EH': 'Laâyoune'
 };
 
-// Charger les données des pays depuis countries.json et attendre qu'elles soient prêtes
+// Charger les données des pays depuis countries.json
 async function loadCountryData() {
   try {
     const response = await fetch('data/countries.json');
@@ -2516,14 +2516,17 @@ async function loadCountryData() {
     console.log('countryData chargé:', countryData);
   } catch (error) {
     console.error('Erreur lors du chargement de countries.json:', error);
+    // Utiliser les données de secours si countries.json échoue
+    Object.assign(countryData, fallbackCountryData);
+    console.log('Données de secours appliquées:', countryData);
   }
 }
 
-// Charger le GeoJSON pour la carte après le chargement de countryData
+// Charger le GeoJSON pour la carte
 async function loadMap() {
   await loadCountryData(); // Attendre que countryData soit chargé
   try {
-    const response = await fetch('https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson');
+    const response = await fetch('data/ne_110m_admin_0_countries.geojson'); // Utiliser le fichier local
     if (!response.ok) {
       throw new Error(`Erreur HTTP ${response.status}: Impossible de charger le GeoJSON`);
     }
@@ -2537,7 +2540,7 @@ async function loadMap() {
       },
       onEachFeature: function (feature, layer) {
         let isoCode = feature.properties.ISO_A2 || 'N/A';
-        // Correction spécifique pour la France et la Norvège basée sur NAME_FR ou ADMIN
+        // Correction spécifique pour la France et la Norvège
         if (feature.properties.NAME_FR === 'France' || feature.properties.ADMIN === 'France') {
           isoCode = 'FR';
         } else if (feature.properties.NAME_FR === 'Norvège' || feature.properties.ADMIN === 'Norway') {
@@ -2546,7 +2549,7 @@ async function loadMap() {
           isoCode = isoCorrections[isoCode] || isoCode;
         }
         console.log(`Pays: ${feature.properties.NAME_FR || feature.properties.ADMIN}, ISO_A2: ${feature.properties.ISO_A2}, Corrigé: ${isoCode}`); // Débogage
-        const countryInfo = countryData[isoCode] || {};
+        const countryInfo = countryData[isoCode] || fallbackCountryData[isoCode] || {};
         const flagUrl = countryInfo.flag || 'N/A';
         let languages = countryInfo.languages || 'N/A';
         if (languages !== 'N/A') {
@@ -2562,7 +2565,7 @@ async function loadMap() {
         if (!feature.properties.CAPITAL) {
           console.log(`Capitale manquante pour ${countryName} :`, {
             ISO_A2: feature.properties.ISO_A2,
-            CorrectedISO: isoCode,
+            Corrigé: isoCode,
             FallbackCapital: capitalFallbacks[isoCode] || 'N/A'
           });
         }
@@ -2597,7 +2600,7 @@ async function loadMap() {
     }).addTo(map);
   } catch (error) {
     console.error('Erreur lors du chargement GeoJSON :', error);
-    alert('Impossible de charger les données des pays. Vérifiez votre connexion ou l\'URL du GeoJSON.');
+    alert('Impossible de charger les données des pays. Vérifiez que le fichier data/ne_110m_admin_0_countries.geojson est présent et accessible.');
   }
 }
 
