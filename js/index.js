@@ -2301,106 +2301,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 // ==================== GÉNÉRATION FICHIER TEXTE ====================
-async function generateTextFile() {
-  const comment = document.getElementById('commentText').value;
-  if (!comment) {
-    alert('Aucun commentaire à exporter.');
-    return;
-  }
-  console.log('Ouverture du modal pour choisir le format');
-  try {
-    const modalElement = document.getElementById('formatModal');
-    if (!modalElement) {
-      console.error('Modal formatModal non trouvé dans le DOM');
-      alert('Erreur : modal de choix de format non trouvé.');
-      return;
-    }
-    const modal = new bootstrap.Modal(modalElement, { keyboard: true });
-    modal.show();
-  } catch (error) {
-    console.error('Erreur lors de l\'ouverture du modal:', error);
-    alert('Erreur lors de l\'ouverture du menu de choix. Essayez à nouveau.');
-  }
+function generateTextFile() {
+  const text = document.getElementById('commentText').value.trim();
+  if (!text) return alert('Veuillez écrire un commentaire');
+
+  const blob = new Blob([text], { type: 'text/plain' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'commentaire.txt';
+  link.click();
 }
-
-async function exportComment(format) {
-  console.log('exportComment appelé avec format:', format);
-  const comment = document.getElementById('commentText').value;
-  const modalElement = document.getElementById('formatModal');
-  const modal = bootstrap.Modal.getInstance(modalElement);
-  if (modal) {
-    modal.hide();
-    console.log('Modal fermé');
-  } else {
-    console.warn('Modal non trouvé pour fermeture');
-  }
-
-  try {
-    if (format === 'DOCX') {
-      console.log('Génération du fichier DOCX...');
-      const { Document, Paragraph, TextRun, Packer } = window.docx;
-      const doc = new Document({
-        sections: [{
-          properties: {},
-          children: [
-            new Paragraph({
-              children: [new TextRun({ text: 'Commentaire musical', bold: true, size: 28 })],
-              spacing: { after: 200 }
-            }),
-            new Paragraph({
-              children: [new TextRun({ text: comment, size: 24 })]
-            })
-          ]
-        }]
-      });
-      const blob = await Packer.toBlob(doc);
-      saveAs(blob, 'commentaire.docx');
-      console.log('Fichier DOCX exporté avec succès');
-    } else if (format === 'ODF') {
-      console.log('Génération du fichier ODF...');
-      const odfContent = `
-<?xml version="1.0" encoding="UTF-8"?>
-<office:document-content
-  xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"
-  xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0">
-  <office:body>
-    <office:text>
-      <text:h text:style-name="Heading_20_1">Commentaire musical</text:h>
-      <text:p>${comment.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</text:p>
-    </office:text>
-  </office:body>
-</office:document-content>`;
-      const odfBlob = new Blob([odfContent], { type: 'application/vnd.oasis.opendocument.text' });
-      const url = URL.createObjectURL(odfBlob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'commentaire.odt';
-      link.click();
-      URL.revokeObjectURL(url);
-      console.log('Fichier ODF exporté avec succès');
-    } else {
-      throw new Error('Format non reconnu: ' + format);
-    }
-    // Vider le textarea et supprimer le brouillon après exportation réussie
-    document.getElementById('commentText').value = '';
-    localStorage.removeItem('commentDraft');
-  } catch (error) {
-    console.error('Erreur lors de l\'exportation:', error);
-    alert('Erreur lors de l\'exportation. Enregistrement en TXT.');
-    const blob = new Blob([comment], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'commentaire.txt';
-    link.click();
-    URL.revokeObjectURL(url);
-    console.log('Fichier TXT exporté après erreur');
-    // Vider le textarea même en cas d'erreur
-    document.getElementById('commentText').value = '';
-    localStorage.removeItem('commentDraft');
-  }
-}
-
 
 // ==================== INITIALISATION ====================
 document.addEventListener("DOMContentLoaded", () => {
@@ -2423,24 +2333,6 @@ document.addEventListener("DOMContentLoaded", () => {
     link.download = `${fileName}.wav`;
     link.click();
   };
-  const exportWordBtn = document.getElementById('exportWord');
-  const exportODFBtn = document.getElementById('exportODF');
-  if (exportWordBtn) {
-    exportWordBtn.addEventListener('click', () => {
-      console.log('Clic sur bouton Word');
-      exportComment('DOCX');
-    });
-  } else {
-    console.error('Bouton exportWord non trouvé');
-  }
-  if (exportODFBtn) {
-    exportODFBtn.addEventListener('click', () => {
-      console.log('Clic sur bouton ODF');
-      exportComment('ODF');
-    });
-  } else {
-    console.error('Bouton exportODF non trouvé');
-  }
 });
 
 // Stocker les données des pays

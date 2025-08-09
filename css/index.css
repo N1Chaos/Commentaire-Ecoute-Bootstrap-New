@@ -489,6 +489,3 @@ header p {
     background: linear-gradient(to right, var(--button-color), #5f6b61); /* Gris bouton → gris foncé */
 }
 
-
-#formatModal .modal-content { border-radius: 10px; }
-#formatModal .btn-primary { font-size: 1.2em; }
