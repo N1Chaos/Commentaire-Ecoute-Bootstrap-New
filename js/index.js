@@ -2184,18 +2184,50 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (currentPage === '' || currentPage === 'index') {
     console.log('Initialisation de setupAudioPlayer sur la page principale');
     await setupAudioPlayer();
+
+    // Sauvegarde et restauration du brouillon de commentaire
+    const commentText = document.getElementById('commentText');
+    if (commentText) {
+      // Restaurer le brouillon sauvegardé
+      const savedDraft = localStorage.getItem('commentDraft');
+      if (savedDraft) {
+        commentText.value = savedDraft;
+      }
+
+      // Sauvegarder le brouillon à chaque modification
+      commentText.addEventListener('input', () => {
+        localStorage.setItem('commentDraft', commentText.value);
+      });
+
+      // Effacer le brouillon lors de la génération du fichier texte
+      const generateTextButton = document.getElementById('generateTextButton');
+      if (generateTextButton) {
+        generateTextButton.addEventListener('click', () => {
+          if (commentText.value.trim()) {
+            localStorage.removeItem('commentDraft');
+            commentText.value = ''; // Réinitialiser le champ après génération
+          }
+        });
+      }
+    } else {
+      console.warn('Champ de commentaire avec id="commentText" non trouvé.');
+    }
   }
 
+  // Afficher les mots sélectionnés pour chaque page
   Object.keys(PAGES).forEach(displayWordsForPage);
 
+  // Charger la vidéo YouTube sauvegardée
   const savedVideoID = localStorage.getItem('youtubeVideoID');
   if (savedVideoID) {
     document.getElementById('youtubePlayer').src = `https://www.youtube.com/embed/${savedVideoID}`;
     document.getElementById('videoUrl').value = `https://youtu.be/${savedVideoID}`;
   }
 
+  // Initialiser l'enregistreur audio
   setupAudioRecorder();
 
+  // Configurer le bouton de téléchargement
   document.getElementById('downloadButton').onclick = () => {
     if (!window.audioBlob) return alert('Aucun enregistrement disponible');
     const fileName = document.getElementById('fileName').value || 'enregistrement';
