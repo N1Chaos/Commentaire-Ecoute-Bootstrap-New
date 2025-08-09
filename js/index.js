@@ -1999,26 +1999,32 @@ async function setupAudioPlayer() {
   const fileNameDisplay = document.getElementById('audioFileName');
 
   if (!player || !source || !fileInput || !fileNameDisplay) {
-    console.error('Éléments audio ou affichage du nom non trouvés dans le DOM');
-    fileNameDisplay.textContent = 'Aucun fichier chargé';
+    console.error('Éléments audio ou affichage du nom non trouvés dans le DOM:', {
+      player: !!player,
+      source: !!source,
+      fileInput: !!fileInput,
+      fileNameDisplay: !!fileNameDisplay
+    });
+    if (fileNameDisplay) fileNameDisplay.textContent = 'Aucun fichier chargé';
     return;
   }
 
   // Recharger l'audio sauvegardé et le nom du fichier si disponible
   const savedAudioData = await loadAudioFromDB();
   const savedAudioState = await loadAudioStateFromDB();
+  console.log('Données récupérées de IndexedDB:', savedAudioData); // Log pour débogage
   if (savedAudioData && savedAudioData.blob) {
-    console.log('Audio trouvé dans IndexedDB:', savedAudioData);
     try {
       const audioUrl = URL.createObjectURL(savedAudioData.blob);
       source.src = audioUrl;
       player.load();
       console.log('Audio chargé dans le lecteur');
 
-      // Afficher le nom du fichier s'il existe, sinon un message par défaut
+      // Afficher le nom du fichier
       fileNameDisplay.textContent = savedAudioData.fileName 
         ? `Fichier chargé : ${savedAudioData.fileName}` 
         : 'Aucun nom de fichier disponible';
+      console.log('Nom affiché:', fileNameDisplay.textContent); // Log pour vérifier l'affichage
 
       const savedTime = savedAudioState?.time || parseFloat(savedAudioData.time || 0);
       const isPlaying = savedAudioState?.isPlaying || false;
