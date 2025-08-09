@@ -2499,10 +2499,14 @@ document.addEventListener("DOMContentLoaded", () => {
   'EH': 'Laâyoune'
 };
 
-// Charger les données des pays depuis countries.json
-fetch('data/countries.json')
-  .then(response => response.json())
-  .then(data => {
+// Charger les données des pays depuis countries.json et attendre qu'elles soient prêtes
+async function loadCountryData() {
+  try {
+    const response = await fetch('data/countries.json');
+    if (!response.ok) {
+      throw new Error(`Erreur HTTP ${response.status}: Impossible de charger countries.json`);
+    }
+    const data = await response.json();
     data.forEach(country => {
       countryData[country.cca2] = {
         flag: country.flags.png,
@@ -2510,18 +2514,20 @@ fetch('data/countries.json')
       };
     });
     console.log('countryData chargé:', countryData);
-  })
-  .catch(error => console.error('Erreur lors du chargement de countries.json:', error));
+  } catch (error) {
+    console.error('Erreur lors du chargement de countries.json:', error);
+  }
+}
 
-// Charger le GeoJSON pour la carte
-fetch('https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson')
-  .then(response => {
+// Charger le GeoJSON pour la carte après le chargement de countryData
+async function loadMap() {
+  await loadCountryData(); // Attendre que countryData soit chargé
+  try {
+    const response = await fetch('https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson');
     if (!response.ok) {
       throw new Error(`Erreur HTTP ${response.status}: Impossible de charger le GeoJSON`);
     }
-    return response.json();
-  })
-  .then(data => {
+    const data = await response.json();
     geojsonLayer = L.geoJSON(data, {
       style: {
         color: '#3388ff',
@@ -2589,11 +2595,14 @@ fetch('https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geo
         });
       }
     }).addTo(map);
-  })
-  .catch(error => {
+  } catch (error) {
     console.error('Erreur lors du chargement GeoJSON :', error);
     alert('Impossible de charger les données des pays. Vérifiez votre connexion ou l\'URL du GeoJSON.');
-  });
+  }
+}
+
+// Lancer le chargement de la carte
+loadMap();
 
 // Table de correspondance pour traduire les codes/noms de langues en français
 const languageTranslations = {
