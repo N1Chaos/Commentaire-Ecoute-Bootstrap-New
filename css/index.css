@@ -5,7 +5,8 @@
     --highlight-color: #2196f3; /* Bleu */
     --background-color: #f4f4f4; /* Gris clair */
     --button-color: #94a595; /* Gris clair pour boutons */
-    --button-hover-color: #1e88e5; /* Bleu foncé pour survol */
+    --button-hover-color: #1e88e5; /* Bleu foncé pour survol général */
+    --map-timeline-hover-color: #ff5722; /* Orange foncé pour boutons carte et frise */
     --font-color: #333; /* Gris foncé pour texte */
     --border-radius: 15px;
     --padding: 10px;
@@ -81,6 +82,37 @@ header p {
     background-color: var(--button-hover-color) !important;
     transform: translateY(-2px);
     box-shadow: 0 6px 12px rgba(33, 150, 243, 0.4);
+}
+
+.btn-outline-primary:active {
+    transform: scale(0.95); /* Effet de clic */
+}
+
+/* Boutons spécifiques pour carte et frise */
+.btn-outline-primary[data-bs-target="#carteMondeModal"],
+.btn-outline-primary[data-bs-target="#friseChronoModal"] {
+    background-color: var(--button-color);
+    color: white !important;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 15px;
+    margin: 5px 10px;
+    width: calc(100% - 20px);
+    transition: background-color 0.3s ease, transform 0.2s ease-in-out, box-shadow 0.2s ease;
+    font-family: var(--body-font);
+    font-size: var(--font-size);
+}
+
+.btn-outline-primary[data-bs-target="#carteMondeModal"]:hover,
+.btn-outline-primary[data-bs-target="#friseChronoModal"]:hover {
+    background-color: var(--map-timeline-hover-color) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(33, 150, 243, 0.4);
+}
+
+.btn-outline-primary[data-bs-target="#carteMondeModal"]:active,
+.btn-outline-primary[data-bs-target="#friseChronoModal"]:active {
+    transform: scale(0.95); /* Effet de clic */
 }
 
 /* Cartes */
@@ -208,6 +240,10 @@ textarea {
     box-shadow: 0 6px 12px rgba(33, 150, 243, 0.4);
 }
 
+.btn-primary:active {
+    transform: scale(0.95); /* Effet de clic */
+}
+
 .btn-outline-danger {
     background-color: var(--secondary-color);
     color: white !important;
@@ -223,6 +259,10 @@ textarea {
     box-shadow: 0 6px 12px rgba(33, 150, 243, 0.4);
 }
 
+.btn-outline-danger:active {
+    transform: scale(0.95); /* Effet de clic */
+}
+
 .btn-danger {
     background-color: #ff3333;
     border-color: #ff3333;
@@ -231,10 +271,14 @@ textarea {
 }
 
 .btn-danger:hover {
-    background-color: var(--button-hover-color);
-    border-color: var(--button-hover-color);
+    background-color: #fd3c3c;
+    border-color: #fd3c3c;
     transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(33, 150, 243, 0.4);
+    box-shadow: 0 6px 12px rgba(253, 60, 60, 0.4); /* Ombre rouge */
+}
+
+.btn-danger:active {
+    transform: scale(0.95); /* Effet de clic */
 }
 
 /* Section audio */
@@ -258,6 +302,10 @@ textarea {
     box-shadow: 0 6px 12px rgba(33, 150, 243, 0.4);
 }
 
+#recordButton:active {
+    transform: scale(0.95); /* Effet de clic */
+}
+
 #downloadButton {
     background-color: var(--button-color);
     color: white;
@@ -269,6 +317,10 @@ textarea {
     background-color: var(--button-hover-color);
     transform: translateY(-2px);
     box-shadow: 0 6px 12px rgba(33, 150, 243, 0.4);
+}
+
+#downloadButton:active {
+    transform: scale(0.95); /* Effet de clic */
 }
 
 /* Player audio */
@@ -309,37 +361,18 @@ textarea {
     box-shadow: 0 6px 12px rgba(33, 150, 243, 0.4);
 }
 
-/* Carte du monde */
-.leaflet-container {
-    background-color: #ff9800; /* Même couleur que #recordButton */
-    border: 3px solid #ff5722; /* Bordure orange foncé */
-    border-radius: var(--border-radius);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: background-color 0.3s ease, transform 0.2s ease-in-out, box-shadow 0.2s ease;
-    animation: pulse 0.5s ease-in-out;
+#search-button:active {
+    transform: scale(0.95); /* Effet de clic */
 }
 
-.leaflet-container:hover {
-    background-color: #ff5722; /* Même survol que #recordButton */
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(33, 150, 243, 0.4);
-}
-
-/* Frise chronologique */
-.timeline {
-    background-color: #ff9800; /* Même couleur que #recordButton */
-    border: 3px solid #ff5722; /* Bordure orange foncé */
+/* Modale de la frise chronologique */
+#friseChronoModal .modal-body {
+    background-color: white;
+    border: 1px solid #ccc;
     border-radius: var(--border-radius);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     padding: var(--padding);
-    transition: background-color 0.3s ease, transform 0.2s ease-in-out, box-shadow 0.2s ease;
     animation: pulse 0.5s ease-in-out;
-}
-
-.timeline:hover {
-    background-color: #ff5722; /* Même survol que #recordButton */
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(33, 150, 243, 0.4);
 }
 
 /* Leaflet popup */
@@ -531,8 +564,7 @@ textarea {
     .card,
     #selectedWordsDisplay,
     .nav-col,
-    .leaflet-container,
-    .timeline {
+    #friseChronoModal .modal-body {
         animation: none;
         opacity: 1;
     }
@@ -545,8 +577,8 @@ textarea {
     #recordButton,
     #downloadButton,
     #search-button,
-    .leaflet-container,
-    .timeline {
+    .btn-outline-primary[data-bs-target="#carteMondeModal"],
+    .btn-outline-primary[data-bs-target="#friseChronoModal"] {
         transition: none;
         transform: none;
     }
