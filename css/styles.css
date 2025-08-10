@@ -51,13 +51,13 @@ h1 {
     margin-bottom: 0.5rem;
     color: #ffffff;
     text-transform: uppercase;
-    text-shadow: 0 0 8px rgba(33, 150, 243, 0.7);
+    text-shadow: 0 0 12px rgba(33, 150, 243, 0.9), 0 0 20px rgba(33, 150, 243, 0.6); /* Plus de bleu autour des lettres */
     transition: transform 0.3s ease, text-shadow 0.3s ease;
 }
 
 h1:hover {
     transform: scale(1.05);
-    text-shadow: 0 0 14px rgba(33, 150, 243, 1);
+    text-shadow: 0 0 16px rgba(33, 150, 243, 1), 0 0 24px rgba(33, 150, 243, 0.8); /* Effet amplifié au survol */
 }
 
 header p {
@@ -102,7 +102,7 @@ header p {
 .category h2 {
     font-family: var(--heading-font);
     color: #ff7f50;
-    font-size: 1.8rem; /* Taille augmentée */
+    font-size: 1.8rem;
     margin-bottom: 1rem;
     text-align: center;
     position: relative;
@@ -142,8 +142,8 @@ header p {
 
 .selectable:hover {
     background-color: var(--button-hover-color);
-    transform: translateY(-4px); /* Survol plus prononcé */
-    box-shadow: 0 6px 12px rgba(33, 150, 243, 0.4); /* Ombre colorée */
+    transform: translateY(-4px);
+    box-shadow: 0 6px 12px rgba(33, 150, 243, 0.4);
 }
 
 .selectable.selected {
@@ -168,8 +168,8 @@ header p {
 
 .btn-success:hover {
     background-color: var(--button-hover-color);
-    transform: translateY(-2px); /* Sans rotation */
-    box-shadow: 0 6px 12px rgba(33, 150, 243, 0.4); /* Ombre colorée */
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(33, 150, 243, 0.4);
 }
 
 .btn-danger {
@@ -179,8 +179,8 @@ header p {
 
 .btn-danger:hover {
     background-color: #ff3333;
-    transform: translateY(-2px); /* Sans rotation */
-    box-shadow: 0 6px 12px rgba(33, 150, 243, 0.4); /* Ombre colorée */
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(33, 150, 243, 0.4);
 }
 
 .btn-primary {
@@ -190,8 +190,8 @@ header p {
 
 .btn-primary:hover {
     background-color: #1e88e5;
-    transform: translateY(-2px); /* Sans rotation */
-    box-shadow: 0 6px 12px rgba(33, 150, 243, 0.4); /* Ombre colorée */
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(33, 150, 243, 0.4);
 }
 
 /* Panneau de définition */
@@ -232,8 +232,8 @@ header p {
 
 #definition-container h2 {
     font-family: var(--heading-font);
-    color: var(--highlight-color); /* Conservé de la version précédente */
-    font-size: 1.8rem; /* Taille augmentée */
+    color: var(--highlight-color);
+    font-size: 1.8rem;
     margin-bottom: 1rem;
 }
 
@@ -403,7 +403,7 @@ header p {
         font-size: 1rem;
     }
     .container {
-        padding: 15px; /* Augmentation pour mobile */
+        padding: 15px;
     }
     .category h2 {
         font-size: 1.5rem;
@@ -424,13 +424,13 @@ header p {
         padding: 0.4rem 0.8rem;
     }
     .mini-player {
-        padding: 15px; /* Augmentation pour mobile */
+        padding: 15px;
     }
 }
 
 @media (max-width: 576px) {
     .container {
-        padding: 0 20px; /* Augmentation pour petits écrans */
+        padding: 0 20px;
     }
     .text-center img {
         margin-bottom: 1rem;
