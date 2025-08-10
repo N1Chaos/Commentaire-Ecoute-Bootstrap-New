@@ -64,6 +64,47 @@ header p {
     border-radius: var(--border-radius);
 }
 
+/* Titres des sections de navigation */
+.section-title {
+    margin: 10px 0 5px;
+    padding: 5px 10px;
+    background-color: #f8f9fa;
+    border-left: 4px solid var(--button-color);
+    border-radius: 4px;
+    animation: slideIn 0.3s ease-in-out;
+}
+
+.section-title h4 {
+    font-family: var(--heading-font);
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--button-color);
+    margin: 0;
+    position: relative;
+    padding-bottom: 0.2rem;
+    transition: color 0.3s ease;
+}
+
+.section-title h4::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 30px;
+    height: 2px;
+    background: var(--button-color);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+.section-title h4:hover {
+    color: #5f6b61;
+}
+
+.section-title h4:hover::after {
+    width: 100%;
+}
+
 /* Boutons de navigation */
 .btn-outline-primary {
     background-color: var(--button-color);
@@ -85,7 +126,7 @@ header p {
 }
 
 .btn-outline-primary:active {
-    transform: scale(0.95); /* Effet de clic */
+    transform: scale(0.95);
 }
 
 /* Boutons spécifiques pour carte et frise */
@@ -112,7 +153,7 @@ header p {
 
 .btn-outline-primary[data-bs-target="#carteMondeModal"]:active,
 .btn-outline-primary[data-bs-target="#friseChronoModal"]:active {
-    transform: scale(0.95); /* Effet de clic */
+    transform: scale(0.95);
 }
 
 /* Cartes */
@@ -241,7 +282,7 @@ textarea {
 }
 
 .btn-primary:active {
-    transform: scale(0.95); /* Effet de clic */
+    transform: scale(0.95);
 }
 
 .btn-outline-danger {
@@ -260,7 +301,7 @@ textarea {
 }
 
 .btn-outline-danger:active {
-    transform: scale(0.95); /* Effet de clic */
+    transform: scale(0.95);
 }
 
 .btn-danger {
@@ -274,11 +315,11 @@ textarea {
     background-color: #fd3c3c;
     border-color: #fd3c3c;
     transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(253, 60, 60, 0.4); /* Ombre rouge */
+    box-shadow: 0 6px 12px rgba(253, 60, 60, 0.4);
 }
 
 .btn-danger:active {
-    transform: scale(0.95); /* Effet de clic */
+    transform: scale(0.95);
 }
 
 /* Section audio */
@@ -303,7 +344,7 @@ textarea {
 }
 
 #recordButton:active {
-    transform: scale(0.95); /* Effet de clic */
+    transform: scale(0.95);
 }
 
 #downloadButton {
@@ -320,7 +361,7 @@ textarea {
 }
 
 #downloadButton:active {
-    transform: scale(0.95); /* Effet de clic */
+    transform: scale(0.95);
 }
 
 /* Player audio */
@@ -362,7 +403,7 @@ textarea {
 }
 
 #search-button:active {
-    transform: scale(0.95); /* Effet de clic */
+    transform: scale(0.95);
 }
 
 /* Modale de la frise chronologique */
@@ -546,7 +587,8 @@ textarea {
         width: 100%;
     }
     #selectedWordsDisplay,
-    .nav-col {
+    .nav-col,
+    .section-title {
         animation: slideIn 0.3s ease-in-out;
     }
 }
@@ -554,6 +596,9 @@ textarea {
 @media (max-width: 576px) {
     .container {
         padding: 0 20px;
+    }
+    .section-title h4 {
+        font-size: 1.2rem;
     }
 }
 
@@ -564,7 +609,8 @@ textarea {
     .card,
     #selectedWordsDisplay,
     .nav-col,
-    #friseChronoModal .modal-body {
+    #friseChronoModal .modal-body,
+    .section-title {
         animation: none;
         opacity: 1;
     }
