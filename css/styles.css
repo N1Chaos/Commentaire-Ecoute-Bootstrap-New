@@ -51,13 +51,13 @@ h1 {
     margin-bottom: 0.5rem;
     color: #ffffff;
     text-transform: uppercase;
-    text-shadow: 0 0 12px rgba(33, 150, 243, 0.9), 0 0 20px rgba(33, 150, 243, 0.6); /* Plus de bleu autour des lettres */
+    text-shadow: 0 0 12px rgba(33, 150, 243, 0.9), 0 0 20px rgba(33, 150, 243, 0.6);
     transition: transform 0.3s ease, text-shadow 0.3s ease;
 }
 
 h1:hover {
     transform: scale(1.05);
-    text-shadow: 0 0 16px rgba(33, 150, 243, 1), 0 0 24px rgba(33, 150, 243, 0.8); /* Effet amplifié au survol */
+    text-shadow: 0 0 16px rgba(33, 150, 243, 1), 0 0 24px rgba(33, 150, 243, 0.8);
 }
 
 header p {
@@ -206,10 +206,8 @@ header p {
     padding: var(--padding);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     overflow-y: auto;
-    display: none;
     border-radius: var(--border-radius);
     z-index: 1000;
-    display: flex;
     flex-direction: column;
     gap: 15px;
     animation: pulse 0.5s ease-in-out;
@@ -235,6 +233,7 @@ header p {
     color: var(--highlight-color);
     font-size: 1.8rem;
     margin-bottom: 1rem;
+    text-align: center;
 }
 
 #definition-container p {
@@ -242,6 +241,7 @@ header p {
     color: var(--font-color);
     font-size: var(--font-size);
     line-height: 1.6;
+    text-align: center;
 }
 
 #close-definition {
@@ -253,6 +253,8 @@ header p {
     cursor: pointer;
     font-weight: bold;
     transition: color 0.3s ease, transform 0.2s ease;
+    touch-action: manipulation;
+    z-index: 1100;
 }
 
 #close-definition:hover {
@@ -260,20 +262,9 @@ header p {
     transform: rotate(90deg);
 }
 
+/* Suppression du texte "Fermer" */
 #close-definition::after {
-    content: "Fermer";
-    display: none;
-    position: absolute;
-    right: 25px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 0.8rem;
-    color: var(--font-color);
-    font-weight: normal;
-}
-
-#close-definition:hover::after {
-    display: block;
+    content: none;
 }
 
 #definition-image-container,
@@ -363,12 +354,6 @@ header p {
     10% { opacity: 1; }
     90% { opacity: 1; }
     100% { opacity: 0; }
-}
-
-@keyframes pulse {
-    0% { transform: scale(0.95); }
-    50% { transform: scale(1.02); }
-    100% { transform: scale(1); }
 }
 
 @keyframes slideIn {

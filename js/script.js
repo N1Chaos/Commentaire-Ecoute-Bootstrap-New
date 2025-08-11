@@ -1898,39 +1898,53 @@ words.forEach(word => {
 
             definitionContainer.style.display = 'block';
         } else {
-            definitionContainer.style.display = 'none';
+            // Revenir au message par défaut si aucun mot n'est sélectionné
+            const anySelected = document.querySelectorAll('.selected').length > 0;
+            if (!anySelected) {
+                definitionTitle.textContent = "Définition";
+                definitionText.innerHTML = "Sélectionnez un mot pour voir la définition.";
+                definitionImageContainer.style.display = 'none';
+                definitionAudioContainer.style.display = 'none';
+                definitionVideoContainer.style.display = 'none';
+            } else {
+                definitionContainer.style.display = 'block';
+            }
         }
         // Positionner le conteneur de définitions
-const isMobile = window.matchMedia("(max-width: 767px)").matches;
-// Toujours retirer le conteneur du DOM avant de le repositionner
-if (definitionContainer.parentElement) {
-    definitionContainer.parentElement.removeChild(definitionContainer);
-}
-if (isMobile) {
-    definitionContainer.style.position = 'relative';
-    definitionContainer.style.left = '';
-    definitionContainer.style.top = '';
-    definitionContainer.style.width = '100%';
-    definitionContainer.style.maxWidth = '';
-    word.insertAdjacentElement('afterend', definitionContainer); // Insérer directement après le mot
-} else {
-    definitionContainer.style.position = 'fixed';
-    definitionContainer.style.right = '20px';
-    definitionContainer.style.top = '20px';
-    definitionContainer.style.width = '300px';
-    definitionContainer.style.maxWidth = '600px';
-    document.body.appendChild(definitionContainer); // Remettre à la fin du body pour laptop
-}
+        const isMobile = window.matchMedia("(max-width: 767px)").matches;
+        if (definitionContainer.parentElement) {
+            definitionContainer.parentElement.removeChild(definitionContainer);
+        }
+        if (isMobile) {
+            definitionContainer.style.position = 'relative';
+            definitionContainer.style.left = '';
+            definitionContainer.style.top = '';
+            definitionContainer.style.width = '100%';
+            definitionContainer.style.maxWidth = '';
+            word.insertAdjacentElement('afterend', definitionContainer);
+        } else {
+            definitionContainer.style.position = 'fixed';
+            definitionContainer.style.right = '20px';
+            definitionContainer.style.top = '20px';
+            definitionContainer.style.width = '300px';
+            definitionContainer.style.maxWidth = '600px';
+            document.body.appendChild(definitionContainer);
+        }
     });
 });
 
 // NOUVEAU: Écouter les événements de réinitialisation
 window.addEventListener('storage', (event) => {
-  if (event.key === 'clearSelectionEvent' || event.key === `selectedWords_${getPageName()}`) {
-    console.log('Événement de réinitialisation détecté:', event.key);
-    restoreSelectedWords();
-    definitionContainer.style.display = 'none'; // Cacher le conteneur de définition
-  }
+    if (event.key === 'clearSelectionEvent' || event.key === `selectedWords_${getPageName()}`) {
+        console.log('Événement de réinitialisation détecté:', event.key);
+        restoreSelectedWords();
+        // Revenir au message par défaut si aucune sélection
+        definitionTitle.textContent = "Définition";
+        definitionText.innerHTML = "Sélectionnez un mot pour voir la définition.";
+        definitionImageContainer.style.display = 'none';
+        definitionAudioContainer.style.display = 'none';
+        definitionVideoContainer.style.display = 'none';
+    }
 });
 
 function clearSelection() {
@@ -1942,7 +1956,12 @@ function clearSelection() {
         const pageWords = Array.from(words).map(el => el.textContent);
         selectedWords = selectedWords.filter(word => !pageWords.includes(word));
         localStorage.setItem('selectedWords', JSON.stringify(selectedWords));
-        definitionContainer.style.display = 'none';
+        // Revenir au message par défaut
+        definitionTitle.textContent = "Définition";
+        definitionText.innerHTML = "Sélectionnez un mot pour voir la définition.";
+        definitionImageContainer.style.display = 'none';
+        definitionAudioContainer.style.display = 'none';
+        definitionVideoContainer.style.display = 'none';
         console.log(`Sélections annulées pour ${pageName}`);
     }
 }
@@ -1954,7 +1973,11 @@ function returnWords() {
 }
 
 function closeDefinition() {
-    definitionContainer.style.display = 'none';
+    definitionTitle.textContent = "Définition";
+    definitionText.innerHTML = "Sélectionnez un mot pour voir la définition.";
+    definitionImageContainer.style.display = 'none';
+    definitionAudioContainer.style.display = 'none';
+    definitionVideoContainer.style.display = 'none';
 }
 
 function goToHomePage() {
@@ -1963,199 +1986,230 @@ function goToHomePage() {
 
 // Fonction pour ouvrir IndexedDB
 function openDB() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open('AudioDB', 1);
-    request.onupgradeneeded = (event) => {
-      const db = event.target.result;
-      db.createObjectStore('audioStore', { keyPath: 'id' });
-    };
-    request.onsuccess = (event) => resolve(event.target.result);
-    request.onerror = (event) => reject(event.target.error);
-  });
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open('AudioDB', 1);
+        request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            db.createObjectStore('audioStore', { keyPath: 'id' });
+        };
+        request.onsuccess = (event) => resolve(event.target.result);
+        request.onerror = (event) => reject(event.target.error);
+    });
 }
 
 // Fonction pour charger l'audio depuis IndexedDB
 function loadAudioFromDB() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open('AudioDB');
-    request.onerror = () => reject('Erreur lors de l’ouverture d’IndexedDB');
-    request.onsuccess = event => {
-      const db = event.target.result;
-      const transaction = db.transaction(['audioStore'], 'readonly');
-      const store = transaction.objectStore('audioStore');
-      const getAudio = store.get('userAudio');
-      getAudio.onsuccess = () => {
-        console.log('Résultat de store.get(userAudio):', getAudio.result);
-        resolve(getAudio.result);
-      };
-      getAudio.onerror = () => reject('Erreur lors du chargement de userAudio');
-    };
-  });
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open('AudioDB');
+        request.onerror = () => reject('Erreur lors de l’ouverture d’IndexedDB');
+        request.onsuccess = event => {
+            const db = event.target.result;
+            const transaction = db.transaction(['audioStore'], 'readonly');
+            const store = transaction.objectStore('audioStore');
+            const getAudio = store.get('userAudio');
+            getAudio.onsuccess = () => {
+                console.log('Résultat de store.get(userAudio):', getAudio.result);
+                resolve(getAudio.result);
+            };
+            getAudio.onerror = () => reject('Erreur lors du chargement de userAudio');
+        };
+    });
 }
 
 // Fonction pour charger l'état audio depuis IndexedDB
 async function loadAudioStateFromDB() {
-  try {
-    const db = await openDB();
-    const transaction = db.transaction(['audioStore'], 'readonly');
-    const store = transaction.objectStore('audioStore');
-    const request = store.get('audioState');
-    return new Promise((resolve, reject) => {
-      request.onsuccess = (event) => resolve(event.target.result);
-      request.onerror = (event) => reject(event.target.error);
-    });
-  } catch (error) {
-    console.error('Erreur lors du chargement de l\'état depuis IndexedDB:', error);
-    return null;
-  }
+    try {
+        const db = await openDB();
+        const transaction = db.transaction(['audioStore'], 'readonly');
+        const store = transaction.objectStore('audioStore');
+        const request = store.get('audioState');
+        return new Promise((resolve, reject) => {
+            request.onsuccess = (event) => resolve(event.target.result);
+            request.onerror = (event) => reject(event.target.error);
+        });
+    } catch (error) {
+        console.error('Erreur lors du chargement de l\'état depuis IndexedDB:', error);
+        return null;
+    }
 }
 
 // Fonction pour sauvegarder l'état audio dans IndexedDB
 async function saveAudioStateToDB(state) {
-  try {
-    const db = await openDB();
-    const transaction = db.transaction(['audioStore'], 'readwrite');
-    const store = transaction.objectStore('audioStore');
-    await store.put({ id: 'audioState', ...state });
-    console.log('État audio sauvegardé dans IndexedDB:', state);
-  } catch (error) {
-    console.error('Erreur lors de la sauvegarde de l\'état dans IndexedDB:', error);
-  }
+    try {
+        const db = await openDB();
+        const transaction = db.transaction(['audioStore'], 'readwrite');
+        const store = transaction.objectStore('audioStore');
+        await store.put({ id: 'audioState', ...state });
+        console.log('État audio sauvegardé dans IndexedDB:', state);
+    } catch (error) {
+        console.error('Erreur lors de la sauvegarde de l\'état dans IndexedDB:', error);
+    }
 }
 
 // Fonction utilitaire pour formater le temps
 function formatTime(seconds) {
-  const minutes = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
-  return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+    const minutes = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
 }
 
 function setupMiniPlayer() {
-  const miniPlayer = document.getElementById('miniPlayer');
-  const miniPlayPause = document.getElementById('miniPlayPause');
-  const miniSeekBar = document.getElementById('miniSeekBar');
-  const miniCurrentTime = document.getElementById('miniCurrentTime');
-  const miniDuration = document.getElementById('miniDuration');
-  const miniPlayerError = document.getElementById('miniPlayerError');
+    const miniPlayer = document.getElementById('miniPlayer');
+    const miniPlayPause = document.getElementById('miniPlayPause');
+    const miniSeekBar = document.getElementById('miniSeekBar');
+    const miniCurrentTime = document.getElementById('miniCurrentTime');
+    const miniDuration = document.getElementById('miniDuration');
+    const miniPlayerError = document.getElementById('miniPlayerError');
 
-  if (!miniPlayer || !miniPlayPause || !miniSeekBar || !miniCurrentTime || !miniDuration || !miniPlayerError) {
-    console.error('Éléments du mini-lecteur non trouvés dans le DOM:', {
-      miniPlayer: !!miniPlayer,
-      miniPlayPause: !!miniPlayPause,
-      miniSeekBar: !!miniSeekBar,
-      miniCurrentTime: !!miniCurrentTime,
-      miniDuration: !!miniDuration,
-      miniPlayerError: !!miniPlayerError
-    });
-    return;
-  }
-
-  let audio = null;
-
-  const updatePlayerState = (state) => {
-    if (!audio || !state) return;
-    audio.currentTime = state.time;
-    miniSeekBar.value = state.time;
-    miniCurrentTime.textContent = formatTime(state.time);
-    if (state.isPlaying && audio.paused) {
-      audio.play().catch(err => {
-        console.error('Erreur lecture mini-lecteur:', err);
-        miniPlayerError.textContent = 'Erreur : lecture bloquée. Cliquez sur play.';
-        miniPlayerError.classList.remove('d-none');
-      });
-      miniPlayPause.innerHTML = '<i class="bi bi-pause-fill"></i>';
-    } else if (!state.isPlaying && !audio.paused) {
-      audio.pause();
-      miniPlayPause.innerHTML = '<i class="bi bi-play-fill"></i>';
+    if (!miniPlayer || !miniPlayPause || !miniSeekBar || !miniCurrentTime || !miniDuration || !miniPlayerError) {
+        console.error('Éléments du mini-lecteur non trouvés dans le DOM:', {
+            miniPlayer: !!miniPlayer,
+            miniPlayPause: !!miniPlayPause,
+            miniSeekBar: !!miniSeekBar,
+            miniCurrentTime: !!miniCurrentTime,
+            miniDuration: !!miniDuration,
+            miniPlayerError: !!miniPlayerError
+        });
+        return;
     }
-  };
 
-  loadAudioFromDB().then(savedAudioData => {
-    console.log('Audio trouvé dans IndexedDB pour le mini-lecteur:', savedAudioData);
-    if (savedAudioData && savedAudioData.blob) {
-      try {
-        audio = new Audio();
-        audio.src = URL.createObjectURL(savedAudioData.blob);
-        console.log('URL audio créée:', audio.src);
+    let audio = null;
 
-        miniPlayer.classList.remove('d-none');
-        miniPlayerError.classList.add('d-none');
-        miniSeekBar.value = savedAudioData.time || 0;
-        miniCurrentTime.textContent = formatTime(savedAudioData.time || 0);
-
-        audio.addEventListener('loadedmetadata', () => {
-          console.log('Métadonnées chargées:', audio.duration);
-          miniSeekBar.max = audio.duration;
-          miniDuration.textContent = formatTime(audio.duration);
-        });
-
-        audio.addEventListener('timeupdate', () => {
-          miniSeekBar.value = audio.currentTime;
-          miniCurrentTime.textContent = formatTime(audio.currentTime);
-          const state = { time: audio.currentTime, isPlaying: !audio.paused, duration: audio.duration };
-          saveAudioStateToDB(state);
-          localStorage.setItem('audioState', JSON.stringify(state));
-        });
-
-        miniSeekBar.addEventListener('input', () => {
-          audio.currentTime = miniSeekBar.value;
-          const state = { time: audio.currentTime, isPlaying: !audio.paused, duration: audio.duration };
-          saveAudioStateToDB(state);
-          localStorage.setItem('audioState', JSON.stringify(state));
-        });
-
-        miniPlayPause.addEventListener('click', () => {
-          if (audio.paused) {
+    const updatePlayerState = (state) => {
+        if (!audio || !state) return;
+        audio.currentTime = state.time;
+        miniSeekBar.value = state.time;
+        miniCurrentTime.textContent = formatTime(state.time);
+        if (state.isPlaying && audio.paused) {
             audio.play().catch(err => {
-              console.error('Erreur lors de la lecture:', err);
-              miniPlayerError.textContent = 'Erreur : lecture bloquée. Cliquez à nouveau.';
-              miniPlayerError.classList.remove('d-none');
+                console.error('Erreur lecture mini-lecteur:', err);
+                miniPlayerError.textContent = 'Erreur : lecture bloquée. Cliquez sur play.';
+                miniPlayerError.classList.remove('d-none');
             });
             miniPlayPause.innerHTML = '<i class="bi bi-pause-fill"></i>';
-          } else {
+        } else if (!state.isPlaying && !audio.paused) {
             audio.pause();
             miniPlayPause.innerHTML = '<i class="bi bi-play-fill"></i>';
-          }
-          const state = { time: audio.currentTime, isPlaying: !audio.paused, duration: audio.duration };
-          saveAudioStateToDB(state);
-          localStorage.setItem('audioState', JSON.stringify(state));
-        });
+        }
+    };
 
-        // Charger l'état initial
-        loadAudioStateFromDB().then(state => {
-          if (state) {
-            updatePlayerState(state);
-          }
-        });
+    loadAudioFromDB().then(savedAudioData => {
+        console.log('Audio trouvé dans IndexedDB pour le mini-lecteur:', savedAudioData);
+        if (savedAudioData && savedAudioData.blob) {
+            try {
+                audio = new Audio();
+                audio.src = URL.createObjectURL(savedAudioData.blob);
+                console.log('URL audio créée:', audio.src);
 
-        // Écouter les changements d'état via localStorage
-        window.addEventListener('storage', (event) => {
-          if (event.key === 'audioState') {
-            const state = JSON.parse(event.newValue);
-            updatePlayerState(state);
-          }
-        });
+                miniPlayer.classList.remove('d-none');
+                miniPlayerError.classList.add('d-none');
+                miniSeekBar.value = savedAudioData.time || 0;
+                miniCurrentTime.textContent = formatTime(savedAudioData.time || 0);
 
-      } catch (err) {
-        console.error('Erreur lors de la configuration du mini-lecteur:', err);
+                audio.addEventListener('loadedmetadata', () => {
+                    console.log('Métadonnées chargées:', audio.duration);
+                    miniSeekBar.max = audio.duration;
+                    miniDuration.textContent = formatTime(audio.duration);
+                });
+
+                audio.addEventListener('timeupdate', () => {
+                    miniSeekBar.value = audio.currentTime;
+                    miniCurrentTime.textContent = formatTime(audio.currentTime);
+                    const state = { time: audio.currentTime, isPlaying: !audio.paused, duration: audio.duration };
+                    saveAudioStateToDB(state);
+                    localStorage.setItem('audioState', JSON.stringify(state));
+                });
+
+                miniSeekBar.addEventListener('input', () => {
+                    audio.currentTime = miniSeekBar.value;
+                    const state = { time: audio.currentTime, isPlaying: !audio.paused, duration: audio.duration };
+                    saveAudioStateToDB(state);
+                    localStorage.setItem('audioState', JSON.stringify(state));
+                });
+
+                miniPlayPause.addEventListener('click', () => {
+                    if (audio.paused) {
+                        audio.play().catch(err => {
+                            console.error('Erreur lors de la lecture:', err);
+                            miniPlayerError.textContent = 'Erreur : lecture bloquée. Cliquez à nouveau.';
+                            miniPlayerError.classList.remove('d-none');
+                        });
+                        miniPlayPause.innerHTML = '<i class="bi bi-pause-fill"></i>';
+                    } else {
+                        audio.pause();
+                        miniPlayPause.innerHTML = '<i class="bi bi-play-fill"></i>';
+                    }
+                    const state = { time: audio.currentTime, isPlaying: !audio.paused, duration: audio.duration };
+                    saveAudioStateToDB(state);
+                    localStorage.setItem('audioState', JSON.stringify(state));
+                });
+
+                // Charger l'état initial
+                loadAudioStateFromDB().then(state => {
+                    if (state) {
+                        updatePlayerState(state);
+                    }
+                });
+
+                // Écouter les changements d'état via localStorage
+                window.addEventListener('storage', (event) => {
+                    if (event.key === 'audioState') {
+                        const state = JSON.parse(event.newValue);
+                        updatePlayerState(state);
+                    }
+                });
+
+            } catch (err) {
+                console.error('Erreur lors de la configuration du mini-lecteur:', err);
+                miniPlayer.classList.add('d-none');
+                miniPlayerError.textContent = 'Erreur : impossible de configurer l’audio.';
+                miniPlayerError.classList.remove('d-none');
+            }
+        } else {
+            console.log('Aucun audio disponible dans IndexedDB pour le mini-lecteur');
+            miniPlayer.classList.add('d-none');
+            miniPlayerError.classList.remove('d-none');
+        }
+    }).catch(err => {
+        console.error('Erreur lors du chargement depuis IndexedDB:', err);
         miniPlayer.classList.add('d-none');
-        miniPlayerError.textContent = 'Erreur : impossible de configurer l’audio.';
         miniPlayerError.classList.remove('d-none');
-      }
-    } else {
-      console.log('Aucun audio disponible dans IndexedDB pour le mini-lecteur');
-      miniPlayer.classList.add('d-none');
-      miniPlayerError.classList.remove('d-none');
-    }
-  }).catch(err => {
-    console.error('Erreur lors du chargement depuis IndexedDB:', err);
-    miniPlayer.classList.add('d-none');
-    miniPlayerError.classList.remove('d-none');
-  });
+    });
 }
 
 // Appeler la fonction pour restaurer les mots au chargement
 document.addEventListener('DOMContentLoaded', () => {
     restoreSelectedWords();
     setupMiniPlayer();
+    // Initialiser le panneau de définition avec le message par défaut
+    definitionTitle.textContent = "Définition";
+    definitionText.innerHTML = "Sélectionnez un mot pour voir la définition.";
+    definitionImageContainer.style.display = 'none';
+    definitionAudioContainer.style.display = 'none';
+    definitionVideoContainer.style.display = 'none';
+    // Positionner le panneau au chargement
+    const isMobile = window.matchMedia("(max-width: 767px)").matches;
+    if (definitionContainer.parentElement) {
+        definitionContainer.parentElement.removeChild(definitionContainer);
+    }
+    if (isMobile) {
+        definitionContainer.style.position = 'relative';
+        definitionContainer.style.left = '';
+        definitionContainer.style.top = '';
+        definitionContainer.style.width = '100%';
+        definitionContainer.style.maxWidth = '';
+        const header = document.querySelector('header');
+        if (header) {
+            header.insertAdjacentElement('afterend', definitionContainer);
+        } else {
+            document.body.appendChild(definitionContainer);
+        }
+    } else {
+        definitionContainer.style.position = 'fixed';
+        definitionContainer.style.right = '20px';
+        definitionContainer.style.top = '20px';
+        definitionContainer.style.width = '300px';
+        definitionContainer.style.maxWidth = '600px';
+        document.body.appendChild(definitionContainer);
+    }
 });
