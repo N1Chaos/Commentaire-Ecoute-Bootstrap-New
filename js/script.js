@@ -1866,7 +1866,6 @@ words.forEach(word => {
             const wordData = wordDefinitions[word.textContent] || { definition: "Aucune définition disponible." };
             definitionTitle.textContent = word.textContent;
             definitionText.innerHTML = wordData.definition.replace(/\n/g, '<br>');
-
             // Gérer l'image
             definitionImageContainer.style.display = wordData.image ? 'block' : 'none';
             if (wordData.image) {
@@ -1875,7 +1874,6 @@ words.forEach(word => {
             } else {
                 definitionImage.style.display = 'none';
             }
-
             // Gérer l'audio
             definitionAudioContainer.style.display = wordData.audio ? 'block' : 'none';
             if (wordData.audio) {
@@ -1885,7 +1883,6 @@ words.forEach(word => {
             } else {
                 definitionAudio.style.display = 'none';
             }
-
             // Gérer la vidéo
             definitionVideoContainer.style.display = wordData.video ? 'block' : 'none';
             if (wordData.video) {
@@ -1895,19 +1892,13 @@ words.forEach(word => {
             } else {
                 definitionVideo.style.display = 'none';
             }
-
+            // Afficher le panneau
             definitionContainer.style.display = 'block';
         } else {
-            // Revenir au message par défaut si aucun mot n'est sélectionné
+            // Masquer le panneau si aucun mot n'est sélectionné
             const anySelected = document.querySelectorAll('.selected').length > 0;
             if (!anySelected) {
-                definitionTitle.textContent = "Définition";
-                definitionText.innerHTML = "Sélectionnez un mot pour voir la définition.";
-                definitionImageContainer.style.display = 'none';
-                definitionAudioContainer.style.display = 'none';
-                definitionVideoContainer.style.display = 'none';
-            } else {
-                definitionContainer.style.display = 'block';
+                definitionContainer.style.display = 'none';
             }
         }
         // Positionner le conteneur de définitions
@@ -1938,12 +1929,8 @@ window.addEventListener('storage', (event) => {
     if (event.key === 'clearSelectionEvent' || event.key === `selectedWords_${getPageName()}`) {
         console.log('Événement de réinitialisation détecté:', event.key);
         restoreSelectedWords();
-        // Revenir au message par défaut si aucune sélection
-        definitionTitle.textContent = "Définition";
-        definitionText.innerHTML = "Sélectionnez un mot pour voir la définition.";
-        definitionImageContainer.style.display = 'none';
-        definitionAudioContainer.style.display = 'none';
-        definitionVideoContainer.style.display = 'none';
+        // Masquer le panneau si aucune sélection
+        definitionContainer.style.display = 'none';
     }
 });
 
@@ -1956,12 +1943,8 @@ function clearSelection() {
         const pageWords = Array.from(words).map(el => el.textContent);
         selectedWords = selectedWords.filter(word => !pageWords.includes(word));
         localStorage.setItem('selectedWords', JSON.stringify(selectedWords));
-        // Revenir au message par défaut
-        definitionTitle.textContent = "Définition";
-        definitionText.innerHTML = "Sélectionnez un mot pour voir la définition.";
-        definitionImageContainer.style.display = 'none';
-        definitionAudioContainer.style.display = 'none';
-        definitionVideoContainer.style.display = 'none';
+        // Masquer le panneau
+        definitionContainer.style.display = 'none';
         console.log(`Sélections annulées pour ${pageName}`);
     }
 }
@@ -1973,11 +1956,7 @@ function returnWords() {
 }
 
 function closeDefinition() {
-    definitionTitle.textContent = "Définition";
-    definitionText.innerHTML = "Sélectionnez un mot pour voir la définition.";
-    definitionImageContainer.style.display = 'none';
-    definitionAudioContainer.style.display = 'none';
-    definitionVideoContainer.style.display = 'none';
+    definitionContainer.style.display = 'none';
 }
 
 function goToHomePage() {
