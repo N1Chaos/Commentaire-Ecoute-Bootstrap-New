@@ -2168,6 +2168,7 @@ document.addEventListener('DOMContentLoaded', () => {
     definitionVideoContainer.style.display = 'none';
     // Positionner le panneau au chargement
     const isMobile = window.matchMedia("(max-width: 767px)").matches;
+    const isPortrait = window.matchMedia("(orientation: portrait)").matches;
     if (definitionContainer.parentElement) {
         definitionContainer.parentElement.removeChild(definitionContainer);
     }
@@ -2177,11 +2178,25 @@ document.addEventListener('DOMContentLoaded', () => {
         definitionContainer.style.top = '';
         definitionContainer.style.width = '100%';
         definitionContainer.style.maxWidth = '';
-        const header = document.querySelector('header');
-        if (header) {
-            header.insertAdjacentElement('afterend', definitionContainer);
+        if (isPortrait) {
+            const h1 = document.querySelector('h1');
+            if (h1) {
+                h1.insertAdjacentElement('afterend', definitionContainer);
+            } else {
+                const header = document.querySelector('header');
+                if (header) {
+                    header.insertAdjacentElement('afterend', definitionContainer);
+                } else {
+                    document.body.appendChild(definitionContainer);
+                }
+            }
         } else {
-            document.body.appendChild(definitionContainer);
+            const header = document.querySelector('header');
+            if (header) {
+                header.insertAdjacentElement('afterend', definitionContainer);
+            } else {
+                document.body.appendChild(definitionContainer);
+            }
         }
     } else {
         definitionContainer.style.position = 'fixed';
