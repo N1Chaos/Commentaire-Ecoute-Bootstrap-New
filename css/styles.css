@@ -263,8 +263,9 @@ header p {
 }
 
 /* Suppression du texte "Fermer" */
-#close-definition::after {
-    content: none;
+#definition-container #close-definition::after {
+    content: none !important;
+    display: none !important;
 }
 
 #definition-image-container,
