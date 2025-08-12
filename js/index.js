@@ -820,6 +820,24 @@ const wordDefinitions =
         "langue basque": {
           "definition": "Langue isolée, sans lien connu avec d'autres familles, parlée au Pays basque entre la France et l'Espagne."
         },
+  "langues polynésiennes": {
+    "definition": "Groupe de langues austronésiennes parlées dans le triangle polynésien (Hawaï, Île de Pâques, Nouvelle-Zélande), incluant le maori, le tahitien et le samoan, caractérisées par une structure phonologique simple et une forte intercompréhension."
+  },
+  "langues mélanésiennes": {
+    "definition": "Langues austronésiennes et papoues parlées en Mélanésie (Nouvelle-Guinée, Fidji, Vanuatu, etc.), très diverses, comme le tok pisin ou le bislama, souvent influencées par des contacts coloniaux et des langues pidgins."
+  },
+  "langues quechua": {
+    "definition": "Famille de langues indigènes d’Amérique du Sud, principalement parlées dans les Andes (Pérou, Bolivie, Équateur), avec le quechua cuzqueño comme variante notable, issues de l’héritage inca et encore parlées par des millions de locuteurs."
+  },
+  "langues mayas": {
+    "definition": "Groupe de langues indigènes mésoaméricaines parlées au Mexique et en Amérique centrale (Guatemala, Belize), incluant le yucatèque, le k’iche’ ou le tzotzil, avec une riche tradition écrite remontant à la civilisation maya."
+  },
+  "langues tupi-guarani": {
+    "definition": "Famille de langues indigènes d’Amérique du Sud, principalement au Brésil, au Paraguay et en Bolivie, incluant le guarani, langue officielle du Paraguay, et le tupi, autrefois dominant dans la région amazonienne."
+  },
+  "esperanto": {
+    "definition": "Langue construite créée en 1887 par L.L. Zamenhof pour faciliter la communication internationale, avec une grammaire régulière et un vocabulaire dérivé de langues européennes, parlée par une communauté mondiale estimée à plusieurs milliers de locuteurs."
+  },
         "musique occidentale de tradition écrite": {
             "definition": "Style musical savant européen caractérisé par son système de notation et son évolution historique à travers les périodes stylistiques majeures."
         },
@@ -1809,7 +1827,55 @@ const wordDefinitions =
     },
     "transcription": {
         "definition": "Adaptation d'une œuvre musicale pour un instrument ou un ensemble différent."
-    }
+    },
+    "développement thématique": {
+    "definition": "Procédé de composition musicale où un thème principal est transformé, varié ou développé à travers des techniques comme la modulation, l’ornementation ou la fragmentation, pour structurer une œuvre."
+  },
+  "mélodisation": {
+    "definition": "Processus de création ou d’accentuation d’une ligne mélodique claire et expressive, souvent mise en avant comme élément principal d’une composition musicale."
+  },
+  "hétérophonique": {
+    "definition": "Une même mélodie est exécutée simultanément par plusieurs voix ou instruments avec des variations subtiles dans l’ornementation, le rythme ou la hauteur, créant une richesse texturale sans lignes mélodiques indépendantes, comme dans certaines musiques traditionnelles asiatiques ou africaines."
+  },
+  "homophonique": {
+    "definition": "Une voix mélodique principale est soutenue par un accompagnement harmonique, créant une structure verticale dominée par l’harmonie, comme dans les chorals de la période classique."
+  },
+  "polyphonique": {
+    "definition": "Interaction de plusieurs voix mélodiques indépendantes, entrelacées selon des principes de contrepoint, où chaque voix conserve une autonomie rythmique et mélodique, comme dans les fugues ou les motets de la Renaissance."
+  },
+  "monodique": {
+    "definition": "Une seule ligne mélodique, sans accompagnement harmonique ni contrepoint, mettant l’accent sur la pureté de la mélodie, comme dans le chant grégorien ou les monodies profanes de la musique baroque naissante."
+  },
+  "antiphonique": {
+    "definition": "Procédé où deux groupes ou voix alternent ou se répondent dans une composition, souvent utilisé dans les chants liturgiques ou les œuvres chorales."
+  },
+  "sérialisme": {
+    "definition": "Technique de composition du XXe siècle où des séries ordonnées de hauteurs, durées, dynamiques ou timbres sont utilisées pour structurer rigoureusement une œuvre, comme dans les travaux de Schoenberg ou Boulez."
+  },
+  "spectralisme": {
+    "definition": "Courant musical moderne basé sur l’analyse des spectres sonores (fréquences, timbres), utilisant des outils informatiques pour créer des textures et harmonies dérivées des propriétés acoustiques, comme dans les œuvres de Grisey ou Murail."
+  },
+  "minimalisme": {
+    "definition": "Style musical caractérisé par la répétition de motifs simples, des changements graduels et une économie de moyens, souvent hypnotique, comme dans les œuvres de Reich, Glass ou Adams."
+  },
+  "thème": {
+    "definition": "Idée musicale principale, souvent une mélodie ou un motif, servant de base à une composition ou à son développement, comme dans une sonate ou une symphonie."
+  },
+  "période": {
+    "definition": "Structure musicale formée de deux phrases complémentaires (souvent antécédent et conséquent), créant une unité mélodique et harmonique cohérente."
+  },
+  "inversion": {
+    "definition": "Technique où une mélodie ou un motif est transformé en renversant les intervalles (les montées deviennent des descentes et vice versa), utilisée dans le contrepoint ou le sérialisme."
+  },
+  "rétrogradation": {
+    "definition": "Procédé où une mélodie ou une série est jouée à l’envers (du dernier au premier élément), souvent utilisé dans le sérialisme ou les fugues."
+  },
+  "augmentation": {
+    "definition": "Technique où les durées des notes d’un motif ou d’une mélodie sont allongées proportionnellement, ralentissant le rythme tout en conservant la structure mélodique."
+  },
+  "diminution": {
+    "definition": "Technique où les durées des notes d’un motif ou d’une mélodie sont raccourcies proportionnellement, accélérant le rythme tout en préservant la structure mélodique."
+  }
 };
 
 // ==================== GESTION DES MOTS SÉLECTIONNÉS ====================
